@@ -31,7 +31,7 @@ trial_simul <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, pt
   z <- rmultinom(N, 1, prob = mod_dist) |>
     t()
 
-  # split total trt effect into subgroup mofified effects
+  # split total trt effect into subgroup modified effects
 
   # mean of deltas equal delta (total trt effect)
   deltas <- c(
