@@ -1,5 +1,7 @@
 #' Potential outcomes
-#'
+#' @description
+#' A short description...
+#' 
 #'
 #'
 
