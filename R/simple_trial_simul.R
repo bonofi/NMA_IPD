@@ -24,12 +24,14 @@ simple_trial_simul <- function(N, delta, mu0, beta, sigma0 = 1, pt = 0.5,
   
   if (confounding_x)
   {
-    # x increases Pr(a) by beta*2
-    pt <- 1/(1 + exp(-(beta*2)*x))
+    # ind with x below mean have Pr(a) = 0.7 else Pr(a) = 0.2
+    pt <- ifelse(x < mean(x, na.rm = TRUE), 0.7, 0.2)
     
     a <- sapply(pt, 
                 function(x)
+                  
                   rbinom(1, 1, x),
+                
                 simplify = TRUE
     )
   } else
