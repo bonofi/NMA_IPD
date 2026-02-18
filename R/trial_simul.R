@@ -60,7 +60,12 @@ trial_simul <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, pt
     sub_delta = subdelta,
     y = y,
     trt = a,
-    x = x
+    x = x,
+    V = paste(
+      "level",
+      z%*%c(1:dim(z)[2]),
+      sep ="_"
+    )
   ) |>
     cbind(
       as.data.frame(z)
