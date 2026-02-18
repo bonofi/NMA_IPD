@@ -14,11 +14,11 @@ function(m1, m0, s1 = 1, s0 = 1, pt = 0.5, N = 10, seed = 0614){
 
   set.seed(seed)
 
-  # define a potential outcome distribution for the untreated
+  # define a potential outcome distribution for the treated
 
   y1 <- rnorm(N, m1, s1)  # potential outcome if treated
 
-  # define a potential outcome distribution for the treated
+  # define a potential outcome distribution for the untreated
 
   y0 <- rnorm(N, m0, s0) # potential outcome if untreated
 
