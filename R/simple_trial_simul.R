@@ -25,8 +25,15 @@ simple_trial_simul <- function(N, delta, mu0, beta, sigma0 = 1, pt = 0.5,
   if (confounding_x)
   {
     # ind with x below mean have Pr(a) = 0.7 else Pr(a) = 0.2
-    pt <- ifelse(x < mean(x, na.rm = TRUE), 0.7, 0.2)
+    #pt <- ifelse(x < mean(x, na.rm = TRUE), 0.7, 0.2)
     
+    beta0 <- 0.1   # Intercept
+    beta1 <- -0.2   # Effect of covariate
+    
+    # Calculate probability using logistic function
+    logit <- beta0 + beta1 * (x - mean(x, na.rm = TRUE))
+    pt <- 1 / (1 + exp(-logit))  # logistic transformation
+
     a <- sapply(pt, 
                 function(x)
                   
