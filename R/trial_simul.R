@@ -12,7 +12,7 @@
 
 trial_simul <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, pt = 0.5,
                         fx = function(x) rgamma(x, 60), mod_dist = c(0.2, 0.4, 0.4),
-                        seed = 5602783){
+                        seed = 5602783, trt_names = LETTERS[1:(length(delta) + 1)]){
 
   set.seed(seed)
 
@@ -48,6 +48,11 @@ trial_simul <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, pt
 
   # simulate one head-to-head trial
 
+  trt_label <- data.frame(
+    trt = sort(unique(a)),
+    trt_name = sort(unique(trt_names))
+  )
+  
   # Outcome expectation: linear relationship with effect modification
 
   y <- y0 + subdelta*a
@@ -69,6 +74,10 @@ trial_simul <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, pt
   ) |>
     cbind(
       as.data.frame(z)
+    ) |> 
+    dplyr::left_join(
+      trt_label,
+      by = "trt"
     )
 
 
