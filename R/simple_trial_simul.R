@@ -81,8 +81,7 @@ summary(
   lm(y~trt + x, data = dat)
 )
 
-
-
+# test
 summary(
   lm(y~trt, data = dat_conf)
 )
