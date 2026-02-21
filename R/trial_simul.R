@@ -88,6 +88,15 @@ trial_simul <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, pt
 
 dat <- trial_simul(N = 1000, delta = -10, mu0 = 20, beta = 2)
 
+# change predictor distribution: younger people
+dat2 <- trial_simul(N = 1000, delta = -10, mu0 = 20, beta = 2, 
+                    fx = function(x) rgamma(x, 30))
+
+# change effect modifier distribution: younger people
+dat3 <- trial_simul(N = 1000, delta = -10, mu0 = 20, beta = 2, 
+                    mod_dist = c(0.1, 0.1, 0.8))
+
+
 # estimator
 
 # total effect
