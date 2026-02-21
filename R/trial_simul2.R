@@ -26,19 +26,20 @@ trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, p
   
   y0 <- mu0 + beta*x + res_err
   
-  # distribution of effect modifier (non prognostic)
+  # distribution of effect modifier (non necessarily prognostic)
   
   z <- rmultinom(N, 1, prob = mod_dist) |>
     t()
   
   # split total trt effect into subgroup modified effects
-  
-  browser()
+
   #  mean of deltas equal delta (total trt effect)
   # deltas <- c(
   #   deltasub,
   #   (delta*dim(z)[2]) - sum(deltasub)   # derive effect of third subgroup
   # )
+  
+  deltasub <- as.matrix(deltasub, ncol = length(delta))
   
   deltas <- rbind(
     deltasub,
@@ -50,6 +51,7 @@ trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, p
   # actual subgroup effect based on subgroup
   subdelta <- z%*%deltas
   
+  # get allocation ratio if not given
   if (is.na(pt))
     #equal allocation
     pt <- (N/(length(delta) + 1))/N
@@ -58,26 +60,30 @@ trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, p
   # Outcome expectation: linear relationship with effect modification
   if ( (length(delta) == length(pt)) == 1 )
   {
+    # if head-to-head
     a <- rbinom(N, 1, pt)
     y <- y0 + subdelta*a
+    trt_seq <- a
     
   } else {
+    
+    # if multi-arm
     a <- rmultinom(N, 1, prob = pt) |>
       t()
     # drop reference (placebo) arm for calculating sub effects
     y <- y0 + (subdelta*a[, -1]%*%rep(1,length(delta))) 
+    
+    trt_seq <- (a%*%c(1:dim(a)[2]) - 1) |> 
+      as.vector()
+
+      
   }
      
 
-  # simulate one head-to-head trial
-  
-  trt_seq <- sort(unique(
-    a%*%c(1:dim(a)[2]) - 1
-  )) |> 
-    as.vector()
+  # simulate names
   
   trt_label <- data.frame(
-    trt = trt_seq,
+    trt = sort(unique(trt_seq)),
     trt_name = sort(unique(trt_names))
   )
   
