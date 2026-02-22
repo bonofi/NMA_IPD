@@ -119,6 +119,25 @@ summary(
 )
 
 
+#################
+
+summary(
+  lm(y~trt + V, data = dat)
+)
+
+summary(
+  lm(y~trt + V*trt, data = dat)
+)
+###
+
+summary(
+  lm(y~trt + V + x, data = dat)
+)
+
+summary(
+  lm(y~trt + V*trt + x, data = dat)
+)
+
 
 # decomposition
 summary(
