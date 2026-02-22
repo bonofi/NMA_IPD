@@ -121,6 +121,9 @@ summary(
 
 #################
 
+# including an interaction with the moderator transfer
+# all signals on the interaction terms: marginal effect is washed out
+
 summary(
   lm(y~trt + V, data = dat)
 )

@@ -58,7 +58,7 @@ interaction <- function(n = 1000,
 
 dd <- interaction()
 
-# change predictor dist
+# change predictor dist: it changes the marginal trt effect
 dd2 <- interaction(
   fx = function(x) rgamma(x, 20)
 )
@@ -68,6 +68,7 @@ summary(lm(y~trt, data = dd))
 
 summary(lm(y~trt + x, data = dd))
 
+# only adjusting for predictor and interaction returns unbiased trt estimates
 summary(lm(y~x*trt, data = dd))
 
 
