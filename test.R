@@ -1,8 +1,6 @@
 
 
-
-
-
+source("./R/po_simul.R")
 
 po <- po_simul(m1 = 10, m0 = 20)
 
