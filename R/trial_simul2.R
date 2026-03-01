@@ -19,28 +19,19 @@ trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, p
                         fx = function(x) rgamma(x, 60), mod_dist = c(0.2, 0.4),
                         seed = 5602783, trt_names = LETTERS[1:(length(delta) + 1)]){
   
-  ######### sanity checks #################
-  
-  if (is.null(deltasub) & is.null(mod_dist))
-  {
-    # test!!
-    deltasub <- delta
-    mod_dist <- 1
-  } else if (!is.null(deltasub) & !is.null(mod_dist)) {
-    if (
-      ifelse(is.null(dim(deltasub)),
-             length(deltasub),
-             dim(deltasub)[1]) != length(mod_dist)
-          ) 
-      stop("length of deltasub is not conform with length of mod_dist")
-    else
-      mod_dist <- c(mod_dist, 1-sum(mod_dist))
+  ######### sanity checks ################
 
-  } else 
-    stop("deltasub and mod_dist must be either both NULL or both have non-NULL argument")
+  # deltasub and mod_dist conformity
+  if (
+    ifelse(is.null(dim(deltasub)),
+           length(deltasub),
+           dim(deltasub)[1]) != length(mod_dist)
+  ) 
+    stop("length of deltasub is not conform with length of mod_dist")
   
-  # split total trt effect into subgroup modified effects
+  mod_dist <- c(mod_dist, 1-sum(mod_dist))
   
+  # 2) Allow for common K-1 effect modifications if not specified otherwise
   if (length(delta) > 1)
   {
     if (is.null(dim(deltasub))) 
@@ -54,7 +45,7 @@ trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, p
     
   } 
   
-  # get allocation ratio if not given
+  # 3) get allocation ratio if not given
   if (is.null(pt))
     #equal allocation
     pt <- rep(
@@ -87,6 +78,7 @@ trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, p
     t()
   
   
+  # split total trt effect into subgroup modified effects
   deltasub <- matrix(deltasub, ncol = length(delta))
   
   deltas <- rbind(
@@ -99,7 +91,6 @@ trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, p
   # actual subgroup effect based on subgroup
   subdelta <- z%*%deltas
   
-
 
   # generate allocation list and 
   # Outcome expectation: linear relationship with effect modification
@@ -129,7 +120,7 @@ trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, p
   }
      
 
-  # TRT names
+  # simulate names
   
   trt_label <- data.frame(
     trt = sort(unique(trt_seq)),
