@@ -64,8 +64,6 @@ trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, p
   # actual subgroup effect based on subgroup
   subdelta <- z%*%deltas
   
-  browser()
-  
   # get allocation ratio if not given
   if (is.null(pt))
     #equal allocation
@@ -89,6 +87,7 @@ trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, p
     y <- y0 + subdelta*a
     trt_seq <- a
     aver_trt <- delta
+    sub_delta <-  subdelta
     
   } else {
     
@@ -97,7 +96,8 @@ trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, p
       t()
 
     # drop reference (placebo) arm for calculating sub effects
-    y <- y0 + ((subdelta*a[, -1])%*%rep(1,length(delta))) 
+    sub_delta <- ((subdelta*a[, -1])%*%rep(1,length(delta)))
+    y <- y0 + sub_delta 
     
     trt_seq <- (a%*%c(1:dim(a)[2]) - 1) |> 
       as.vector()
@@ -119,7 +119,7 @@ trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, p
     mu0 = mu0,
     beta = beta,
     tot_delta = aver_trt,
-    sub_delta = subdelta,
+    sub_delta = sub_delta,
     y = y,
     trt = trt_seq,
     x = x,
@@ -135,6 +135,12 @@ trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, p
     dplyr::left_join(
       trt_label,
       by = "trt"
+    ) |> 
+    tibble::add_column(
+      ref_trt = paste0("seq:", 
+                       trt_label$trt[1],
+                       "; name:", 
+                       trt_label$trt_name[1])
     )
   
   
