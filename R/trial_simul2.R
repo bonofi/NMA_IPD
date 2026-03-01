@@ -2,15 +2,20 @@
 #' @description
 #' Simulate multi arm (arms >=2) trial from IPD generating mechanism
 #' @description
-#' Simulate trial with continuous primary outcome and residual unit-variance Normal error, e.g. cholesterol levels, in presence of prognostic variable and its interaction with the treatment effect.
-#'
-#' @param pt - allocation ratio, 1:1 -> 0.5
-#' @param fx - function to simulate prognostic variable vector, e.g. age with mean 60, Gamma(60)
-#' @param deltasub - vector of treatment effect for K-1 ordered subgroups
-#' @param mod_dist - vector of prevalence of K subgroups (categorical effect modifier)
+#' Simulate trial with continuous primary outcome, Y, and residual unit-variance Normal error, e.g. cholesterol levels, in presence of prognostic variable, X, and treatment modifier strata, V.
+#' @param N - scalar - overall sample size. It will be split across arms based on allocation ratio and number of treatment effect modifier strata.
+#' @param mu0 - scalar - baseline average outcome Y.
+#' @param beta - scalar - effect of prognostic variable X on outcome Y
+#' @param delta - vector - of average treatment effects, one for each arm in the study. If delta is scalar, the study is head-to-head parallel.
+#' @param deltasub - vector of treatment effects of K-1 ordered subgroups (effect modifications). The K-th effect is chosen such to average the prespecified delta effect.  
+#' If delta has length > 1 (multiarm study) the deltasub vector contains the K-1 subgroup effect that are equal for all arms. For having fully customized arm-specific subgroup effects, let deltasub be a matrix with K-1 rows (effect modification) and for each column-arm (this assumes a common effect modifier for simplicity, if mod_dist is vector).
+#' @param sigma0 - scalar - homoschedastic residual error
+#' @param pt - vector of allocation ratios; should sum to 1; first element has to be allocation to reference arm. If scalar, is the allocation in a head-to-head trial, e.g., 1:1 -> 0.5.
+#' @param fx - function to simulate prognostic variable X, e.g., age with mean 60 --> Gamma(60).
+#' @param mod_dist - vector of prevalence of K subgroups (strata percentages of effect modifier, V). Could allow for treatment-specific effect modifier if put into matrix (Not tested).
 
 
-trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, pt = 0.5,
+trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, pt = NULL,
                         fx = function(x) rgamma(x, 60), mod_dist = c(0.2, 0.4, 0.4),
                         seed = 5602783, trt_names = LETTERS[1:(length(delta) + 1)]){
   
@@ -32,14 +37,22 @@ trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, p
     t()
   
   # split total trt effect into subgroup modified effects
-
-  #  mean of deltas equal delta (total trt effect)
-  # deltas <- c(
-  #   deltasub,
-  #   (delta*dim(z)[2]) - sum(deltasub)   # derive effect of third subgroup
-  # )
   
-  deltasub <- as.matrix(deltasub, ncol = length(delta))
+  if (length(delta) > 1)
+  {
+    if (is.null(dim(deltasub))) 
+    {
+      message("Your study is multiarm but you are assuming a set of common K-1 effect modifications across arms. You can have fully customized effect modifications as corresponding new columns in a deltasub matrix.")
+      # Assume K-1  common effect modifications if not stated otherwise 
+      deltasub <- rep(deltasub, length(delta))
+    } else if (dim(deltasub)[2] != length(delta)) {
+      warning("Multiarm study: Number of columns of deltasub is not equal to number of arms !")
+    }
+    
+  } 
+  
+  
+  deltasub <- matrix(deltasub, ncol = length(delta))
   
   deltas <- rbind(
     deltasub,
@@ -51,10 +64,21 @@ trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, p
   # actual subgroup effect based on subgroup
   subdelta <- z%*%deltas
   
+  browser()
+  
   # get allocation ratio if not given
-  if (is.na(pt))
+  if (is.null(pt))
     #equal allocation
-    pt <- (N/(length(delta) + 1))/N
+    pt <- rep(
+      (N/(length(delta) + 1))/N,
+      ifelse(
+        length(delta) == 1,
+        1,
+        length(delta) + 1
+      )
+    )
+  else if (length(pt) != (length(delta) + 1))
+    warning("Allocation ratio not conform to number of arms!")
   
   # generate allocation list and 
   # Outcome expectation: linear relationship with effect modification
@@ -64,19 +88,21 @@ trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, p
     a <- rbinom(N, 1, pt)
     y <- y0 + subdelta*a
     trt_seq <- a
+    aver_trt <- delta
     
   } else {
     
     # if multi-arm
     a <- rmultinom(N, 1, prob = pt) |>
       t()
+
     # drop reference (placebo) arm for calculating sub effects
-    y <- y0 + (subdelta*a[, -1]%*%rep(1,length(delta))) 
+    y <- y0 + ((subdelta*a[, -1])%*%rep(1,length(delta))) 
     
     trt_seq <- (a%*%c(1:dim(a)[2]) - 1) |> 
       as.vector()
-
-      
+    aver_trt <- a[, -1]%*%delta |> 
+      as.vector()
   }
      
 
@@ -92,7 +118,7 @@ trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, p
     epsilon = res_err,
     mu0 = mu0,
     beta = beta,
-    tot_delta = delta,
+    tot_delta = aver_trt,
     sub_delta = subdelta,
     y = y,
     trt = trt_seq,
@@ -119,6 +145,10 @@ trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, p
 
 dat <- trial_simul2(N = 1000, delta = -10, mu0 = 20, beta = 2)
 
+# test multiarm
+dat2 <- trial_simul2(N = 1000, delta = c(-10, -20), mu0 = 20, beta = 2)
+
+
 # estimator
 
 # total effect
@@ -139,21 +169,4 @@ summary(
 summary(
   lm(y~trt, data = dat, subset = V3 == 1)
 )
-
-
-
-# decomposition
-summary(
-  lm(y~trt + x*trt, data = dat)
-)
-
-summary(
-  lm(y~trt + x, data = dat)
-)
-
-# subgroup analysis
-
-lm(y~trt, data = dat, subset = x < 54)$coef
-lm(y~trt, data = dat, subset = x > 54 & x < 64)$coef
-lm(y~trt, data = dat, subset = x > 64)$coef
 
