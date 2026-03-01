@@ -111,7 +111,44 @@ trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, p
   trt_label <- data.frame(
     trt = sort(unique(trt_seq)),
     trt_name = sort(unique(trt_names))
-  )
+  ) |> 
+    dplyr::left_join(
+      data.frame(
+        trt = sort(unique(trt_seq))[-1],
+        trt_eff = delta
+      ),
+      by = "trt"
+    )
+  
+
+  # Get indirect effects
+  indeff <- trt_label |> 
+    na.omit() |> 
+    dplyr::pull(trt_name) |> 
+    combn(
+      ifelse(length(delta) > 1, 
+             2,
+             1)
+    ) |> 
+    apply(2,
+          function(cntr) {
+            
+            data.frame(
+              contrast = paste(cntr, collapse = "-"),
+              ind_eff = trt_label |> 
+                dplyr::filter(
+                  trt_name %in% cntr
+                ) |> 
+                dplyr::pull(trt_eff) |> 
+                rev() |> 
+                diff() |> 
+                c(0) |> 
+                sum()
+            )
+            
+          },
+          simplify = FALSE) |> 
+    dplyr::bind_rows()
   
   
   out <- tibble::tibble(
@@ -133,7 +170,8 @@ trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, p
       as.data.frame(z)
     ) |> 
     dplyr::left_join(
-      trt_label,
+      trt_label |> 
+        dplyr::select(trt, trt_name),
       by = "trt"
     ) |> 
     tibble::add_column(
@@ -144,15 +182,20 @@ trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, p
     )
   
   
-  return(out)
+  return(
+    list(
+      data = out,
+      indir_eff = indeff
+    )
+  )
 }
 
 # test
 
-dat <- trial_simul2(N = 1000, delta = -10, mu0 = 20, beta = 2)
+dat <- trial_simul2(N = 1000, delta = -10, mu0 = 20, beta = 2)$data
 
 # test multiarm
-dat2 <- trial_simul2(N = 1000, delta = c(-10, -20), mu0 = 20, beta = 2)
+dat2 <- trial_simul2(N = 1000, delta = c(-10, -20), mu0 = 20, beta = 2)$data
 
 
 # estimator
@@ -162,7 +205,7 @@ summary(
   lm(y~trt, data = dat)
 )
 
-# subgroup
+# test subgroup
 
 summary(
   lm(y~trt, data = dat, subset = V1 == 1)
@@ -176,3 +219,4 @@ summary(
   lm(y~trt, data = dat, subset = V3 == 1)
 )
 
+# test indirect effect
