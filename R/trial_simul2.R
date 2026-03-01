@@ -12,29 +12,32 @@
 #' @param sigma0 - scalar - homoschedastic residual error
 #' @param pt - vector of allocation ratios; should sum to 1; first element has to be allocation to reference arm. If scalar, is the allocation in a head-to-head trial, e.g., 1:1 -> 0.5.
 #' @param fx - function to simulate prognostic variable X, e.g., age with mean 60 --> Gamma(60).
-#' @param mod_dist - vector of prevalence of K subgroups (strata percentages of effect modifier, V). Could allow for treatment-specific effect modifier if put into matrix (Not tested).
+#' @param mod_dist - vector of prevalence of K-1 subgroups (strata percentages of effect modifier, V). K-th proportion is known from the K-1 ones. Could allow for treatment-specific effect modifier if put into matrix (Not tested).
 
 
 trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, pt = NULL,
-                        fx = function(x) rgamma(x, 60), mod_dist = c(0.2, 0.4, 0.4),
+                        fx = function(x) rgamma(x, 60), mod_dist = c(0.2, 0.4),
                         seed = 5602783, trt_names = LETTERS[1:(length(delta) + 1)]){
   
-  set.seed(seed)
+  ######### sanity checks #################
   
-  
-  res_err <- rnorm(N, sd = sigma0)
-  
-  # simulate prognostic variable
-  x <- fx(N)
-  
-  # generate baseline population (target population) as the combination of average outcome mu0 and prognostic variable
-  
-  y0 <- mu0 + beta*x + res_err
-  
-  # distribution of effect modifier (non necessarily prognostic)
-  
-  z <- rmultinom(N, 1, prob = mod_dist) |>
-    t()
+  if (is.null(deltasub) & is.null(mod_dist))
+  {
+    # test!!
+    deltasub <- delta
+    mod_dist <- 1
+  } else if (!is.null(deltasub) & !is.null(mod_dist)) {
+    if (
+      ifelse(is.null(dim(deltasub)),
+             length(deltasub),
+             dim(deltasub)[1]) != length(mod_dist)
+          ) 
+      stop("length of deltasub is not conform with length of mod_dist")
+    else
+      mod_dist <- c(mod_dist, 1-sum(mod_dist))
+
+  } else 
+    stop("deltasub and mod_dist must be either both NULL or both have non-NULL argument")
   
   # split total trt effect into subgroup modified effects
   
@@ -51,19 +54,6 @@ trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, p
     
   } 
   
-  
-  deltasub <- matrix(deltasub, ncol = length(delta))
-  
-  deltas <- rbind(
-    deltasub,
-    matrix( 
-      (delta*dim(z)[2]) - apply(deltasub, 2, sum),
-      nrow  =1)
-  )
-  
-  # actual subgroup effect based on subgroup
-  subdelta <- z%*%deltas
-  
   # get allocation ratio if not given
   if (is.null(pt))
     #equal allocation
@@ -78,6 +68,39 @@ trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, p
   else if (length(pt) != (length(delta) + 1))
     warning("Allocation ratio not conform to number of arms!")
   
+##### end sanity checks ################  
+  
+  set.seed(seed)
+  
+  res_err <- rnorm(N, sd = sigma0)
+  
+  # simulate prognostic variable
+  x <- fx(N)
+  
+  # generate baseline population (target population) as the combination of average outcome mu0 and prognostic variable
+  
+  y0 <- mu0 + beta*x + res_err
+  
+  # distribution of effect modifier (non necessarily prognostic)
+  
+  z <- rmultinom(N, 1, prob = mod_dist) |>
+    t()
+  
+  
+  deltasub <- matrix(deltasub, ncol = length(delta))
+  
+  deltas <- rbind(
+    deltasub,
+    matrix( 
+      (delta*dim(z)[2]) - apply(deltasub, 2, sum),
+      nrow  =1)
+  )
+  
+  # actual subgroup effect based on subgroup
+  subdelta <- z%*%deltas
+  
+
+
   # generate allocation list and 
   # Outcome expectation: linear relationship with effect modification
   if ( (length(delta) == length(pt)) == 1 )
@@ -106,7 +129,7 @@ trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, p
   }
      
 
-  # simulate names
+  # TRT names
   
   trt_label <- data.frame(
     trt = sort(unique(trt_seq)),
@@ -196,6 +219,16 @@ dat <- trial_simul2(N = 1000, delta = -10, mu0 = 20, beta = 2)$data
 
 # test multiarm
 dat2 <- trial_simul2(N = 1000, delta = c(-10, -20), mu0 = 20, beta = 2)$data
+
+dat2 |> dplyr::count(trt_name, V)
+
+# test asymptotic: N -> big -> unbiased effect modifications. Average effect = weighted average of modifications with weight equal to specific distribution of modifier strata.     
+
+dat3 <- trial_simul2(N = 10000, delta = c(-10, -20), mu0 = 20, beta = 2)$data
+
+# ....balanced modifier strata
+dat4 <- trial_simul2(N = 10000, delta = c(-10, -20), mu0 = 20, beta = 2,
+                     mod_dist = c(0.333, 0.333))$data
 
 
 # estimator
