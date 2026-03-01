@@ -202,21 +202,27 @@ dat2 <- trial_simul2(N = 1000, delta = c(-10, -20), mu0 = 20, beta = 2)$data
 
 # total effect
 summary(
-  lm(y~trt, data = dat)
+  lm(y~trt_name, data = dat)
 )
 
 # test subgroup
 
 summary(
-  lm(y~trt, data = dat, subset = V1 == 1)
+  lm(y~trt_name, data = dat, subset = V1 == 1)
 )
 
 summary(
-  lm(y~trt, data = dat, subset = V2 == 1)
+  lm(y~trt_name, data = dat, subset = V2 == 1)
 )
 
 summary(
-  lm(y~trt, data = dat, subset = V3 == 1)
+  lm(y~trt_name, data = dat, subset = V3 == 1)
 )
 
 # test indirect effect
+
+summary(
+  lm(y~trt_name, data = dat2, subset = trt_name != "A")
+)
+
+
