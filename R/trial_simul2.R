@@ -13,15 +13,17 @@
 #' @param pt - vector of allocation ratios; should sum to 1; first element has to be allocation to reference arm. If scalar, is the allocation in a head-to-head trial, e.g., 1:1 -> 0.5.
 #' @param fx - function to simulate prognostic variable X, e.g., age with mean 60 --> Gamma(60).
 #' @param mod_dist - vector of prevalence of K-1 subgroups (strata percentages of effect modifier, V). K-th proportion is known from the K-1 ones. Could allow for treatment-specific effect modifier if put into matrix (Not tested).
+#' @param no_modifier - Boolean - If TRUE, no modifier is used = Treatment effect is homogeneous across the whole population.
 
 
 trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, pt = NULL,
                         fx = function(x) rgamma(x, 60), mod_dist = c(0.2, 0.4),
-                        seed = 5602783, trt_names = LETTERS[1:(length(delta) + 1)]){
+                        seed = 5602783, trt_names = LETTERS[1:(length(delta) + 1)],
+                        no_modifier = FALSE){
   
   ######### sanity checks ################
 
-  # deltasub and mod_dist conformity
+  # 1) deltasub and mod_dist conformity
   if (
     ifelse(is.null(dim(deltasub)),
            length(deltasub),
@@ -29,14 +31,16 @@ trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, p
   ) 
     stop("length of deltasub is not conform with length of mod_dist")
   
+  # add last modifier stratum proportion
   mod_dist <- c(mod_dist, 1-sum(mod_dist))
   
   # 2) Allow for common K-1 effect modifications if not specified otherwise
   if (length(delta) > 1)
   {
     if (is.null(dim(deltasub))) 
+      # if study is multi-arm (length delta > 1) but deltasub is not matrix, then you must assume same K-1 effect modifications across arms ....
     {
-      message("Your study is multiarm but you are assuming a set of common K-1 effect modifications across arms. You can have fully customized effect modifications as corresponding new columns in a deltasub matrix.")
+      message("Your study is multiarm but you are assuming a set of common K-1 effect modifications across arms. You can have fully customized effect modifications for each arm as corresponding new columns (arms) in a deltasub matrix.")
       # Assume K-1  common effect modifications if not stated otherwise 
       deltasub <- rep(deltasub, length(delta))
     } else if (dim(deltasub)[2] != length(delta)) {
@@ -72,7 +76,7 @@ trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, p
   
   y0 <- mu0 + beta*x + res_err
   
-  # distribution of effect modifier (non necessarily prognostic)
+  # distribution of effect modifier (not necessarily prognostic)
   
   z <- rmultinom(N, 1, prob = mod_dist) |>
     t()
@@ -98,6 +102,9 @@ trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, p
   {
     # if head-to-head
     a <- rbinom(N, 1, pt)
+    if (no_modifier)
+      subdelta <- delta
+  
     y <- y0 + subdelta*a
     trt_seq <- a
     aver_trt <- delta
@@ -109,14 +116,20 @@ trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, p
     a <- rmultinom(N, 1, prob = pt) |>
       t()
 
+    aver_trt <- a[, -1]%*%delta |> 
+      as.vector()
+    
     # drop reference (placebo) arm for calculating sub effects
-    sub_delta <- ((subdelta*a[, -1])%*%rep(1,length(delta)))
+    sub_delta <- (subdelta*a[, -1])%*%rep(1,length(delta)) |> 
+      as.vector()
+    
+    if (no_modifier)
+      sub_delta <- aver_trt
     y <- y0 + sub_delta 
     
     trt_seq <- (a%*%c(1:dim(a)[2]) - 1) |> 
       as.vector()
-    aver_trt <- a[, -1]%*%delta |> 
-      as.vector()
+   
   }
      
 
@@ -220,6 +233,10 @@ dat3 <- trial_simul2(N = 10000, delta = c(-10, -20), mu0 = 20, beta = 2)$data
 # ....balanced modifier strata
 dat4 <- trial_simul2(N = 10000, delta = c(-10, -20), mu0 = 20, beta = 2,
                      mod_dist = c(0.333, 0.333))$data
+
+# ....no modifier
+dat5 <- trial_simul2(N = 1000, delta = c(-10, -20), mu0 = 20, beta = 2,
+                     mod_dist = c(0.333, 0.333), no_modifier = TRUE)$data
 
 
 # estimator
