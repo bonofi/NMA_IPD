@@ -81,7 +81,6 @@ trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, p
   z <- rmultinom(N, 1, prob = mod_dist) |>
     t()
   
-  
   # split total trt effect into subgroup modified effects
   deltasub <- matrix(deltasub, ncol = length(delta))
   
@@ -92,7 +91,7 @@ trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, p
       nrow  =1)
   )
   
-  # actual subgroup effect based on subgroup
+  # individual stratum-specific TRT effects before treatment assignment (at this stage any individual cannot be in all arms at the same time. TRT allocation is being performed below)   
   subdelta <- z%*%deltas
   
 
@@ -270,4 +269,16 @@ summary(
 
 ### distribution of effect modifiers
 
-with()
+with(dat2,
+    prop.table(
+      table(trt, V)
+    ) 
+     )
+# without "proportionate" stratified treatment allocation the observed frequency of V is the prevalence of V in the population, P(V), re-scaled by the allocation probability, P(A), that is, 
+# P(V)*P(A). However, few trial designs have a proportionate stratification. The goal of stratified randomization is not to maintain P(V) in the trial, but to balance V across arms.
+
+with(dat2,
+     prop.table(
+       table(V)
+     ) 
+)*0.333
