@@ -46,7 +46,7 @@ modification <- function(n = 1000,
   
   set.seed(seed)
   
-  betatrt_B <- 2*(betatrt_average - betatrt_A)
+  betatrt_B <- 2*betatrt_average - betatrt_A
   
   # simulate effect modifier variable
   x <- sample(LETTERS[1:2], n, 
