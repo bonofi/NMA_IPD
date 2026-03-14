@@ -25,6 +25,8 @@ imtmod <- lm(y~trt_name + x, data = imt$data)
 
 summary(imtmod)
 # check consistency
-update(imtmod, contrasts = 
-         list(trt_name = contr.treatment(n=3, base = 3)))
+update(imtmod, contrasts = list(
+  trt_name = contr.treatment(
+    n=LETTERS[1:3], base = 3)))
 
+         
