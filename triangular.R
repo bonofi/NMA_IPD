@@ -30,3 +30,9 @@ update(imtmod, contrasts = list(
     n=LETTERS[1:3], base = 3)))
 
          
+## simulate network
+## settings:
+## N studies = 5
+## designs = BA, CA (head-to-head only, no multiarm)
+## each study has same prognostic and modifier distribution as IMT
+
