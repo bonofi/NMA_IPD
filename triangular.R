@@ -81,11 +81,27 @@ ipd_network <- lapply(1:5,
 # estimand: average treatment effect. It is assumed that there is no prior knowledge of the effect modification (otherwise it would be most likely controlled for)
 
 # estimate: calculate average treatment effect for each study by adjusting for known prognostic factor BUT not for effect modifier
-split(ipd_network, ipd_network$study) |>
+
+raw_lm <- split(ipd_network, ipd_network$study) |>
   map_df(
-    \(x) {
-      mod <- lm(y~trt_name + x, data = x)
-      
-    } 
+    \(df) lm(y~trt_name + x, data = df) |> 
+      broom::tidy() |> 
+      add_column(treat2 = df$ref_trt |> 
+                   unique() |> 
+                   stringr::str_remove_all("seq:0; name:"),
+                 studlab = unique(df$study))
   )
   
+
+netdata <- raw_lm |> 
+  filter(grepl("trt_", term)) |> 
+  mutate(
+    term = stringr::str_remove_all(term,
+                                   "trt_name")
+  ) |> 
+  select(term, estimate, std.error, treat2, studlab) |> 
+  rename(
+    treat1 = term,
+    TE = estimate,
+    seTE = std.error
+  )
