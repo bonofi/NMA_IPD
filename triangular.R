@@ -46,7 +46,7 @@ set.seed(45)
 # network settings
 settings <- list(
 
-  N = round(runif(5, min = 100, max = 500)),
+  N = round(runif(5, min = 100, max = 500)), # by increasing N estim become more precise
   design = list(
     c("A", "B"), c("A", "B"), c("A", "B"),
     c("A", "C"), c("A", "C")
@@ -105,3 +105,19 @@ netdata <- raw_lm |>
     TE = estimate,
     seTE = std.error
   )
+
+
+
+nma <- netmeta(TE, seTE, treat1, treat2, 
+               studlab, data = netdata)
+
+netmeta::netgraph(nma)
+netmeta::netleague(nma)
+
+
+# inconsistency cannot be tested in open loop graph
+netmeta:::forest.netsplit(
+  netmeta::netsplit(nma, show = "all")
+)
+
+print(nma)
