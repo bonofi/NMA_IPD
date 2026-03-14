@@ -79,3 +79,13 @@ ipd_network <- lapply(1:5,
 
 
 # estimand: average treatment effect. It is assumed that there is no prior knowledge of the effect modification (otherwise it would be most likely controlled for)
+
+# estimate: calculate average treatment effect for each study by adjusting for known prognostic factor BUT not for effect modifier
+split(ipd_network, ipd_network$study) |>
+  map_df(
+    \(x) {
+      mod <- lm(y~trt_name + x, data = x)
+      
+    } 
+  )
+  
