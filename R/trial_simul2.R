@@ -16,7 +16,7 @@
 #' @param no_modifier - Boolean - If TRUE, no modifier is used = Treatment effect is homogeneous across the whole population.
 
 
-trial_simul2 <- function(N, delta, mu0, beta, deltasub = c(0, 10), sigma0 = 1, pt = NULL,
+trial_simul2 <- function(N, delta, mu0 = 20, beta = 2, deltasub = c(0, 10), sigma0 = 1, pt = NULL,
                         fx = function(x) rgamma(x, 60), mod_dist = c(0.2, 0.4),
                         seed = 5602783, trt_names = LETTERS[1:(length(delta) + 1)],
                         no_modifier = FALSE){
