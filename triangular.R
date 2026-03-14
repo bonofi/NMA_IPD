@@ -2,6 +2,7 @@
 # 
 
 source("./R/trial_simul2.R")
+library(tidyverse)
 
 #### IMT ####
 # settings:
@@ -37,6 +38,7 @@ update(imtmod, contrasts = list(
 ## each study has same the prognostic and modifier distribution as IMT
 ## common effect = all effects are assumed fixed across different study populations
 ## sigma = residual variance can vary from study to study
+## 
 
 
 set.seed(45)
@@ -50,9 +52,29 @@ settings <- list(
   ),
   delta = c(rep(-10, 3), rep(-5, 2)),
   subdelta = rep(0, 5),
-  mod_prev = rep(0.5, 5)
+  mod_prev = rep(0.5, 5),
+  sigma = runif(5, 0.5, 3) # study specific precision
     
 )
+
+
+# stack network data
+
+ipd_network <- lapply(1:5,
+       function(i)
+         trial_simul2(
+           N = settings$N[i],
+           trt_names = settings$design[[i]],
+           delta = settings$delta[i],
+           deltasub = settings$subdelta[i],
+           mod_dist = settings$mod_prev[i],
+           sigma0 = settings$sigma[i],
+           seed = 12+i
+         )$data |> 
+         add_column(study = as.character(i),
+                    .before = 1)
+) |> 
+  bind_rows()
 
 
 # estimand: average treatment effect. It is assumed that there is no prior knowledge of the effect modification (otherwise it would be most likely controlled for)
