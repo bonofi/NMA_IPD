@@ -121,3 +121,6 @@ netmeta:::forest.netsplit(
 )
 
 print(nma)
+
+# 1) check that benchmark "V"-shaped network is consistent. Precision increases with N
+# 2) close loop (add BC study) and check test of inconsistency 
