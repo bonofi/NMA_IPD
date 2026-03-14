@@ -34,5 +34,25 @@ update(imtmod, contrasts = list(
 ## settings:
 ## N studies = 5
 ## designs = BA, CA (head-to-head only, no multiarm)
-## each study has same prognostic and modifier distribution as IMT
+## each study has same the prognostic and modifier distribution as IMT
+## common effect = all effects are assumed fixed across different study populations
+## sigma = residual variance can vary from study to study
 
+
+set.seed(45)
+# network settings
+settings <- list(
+
+  N = round(runif(5, min = 100, max = 500)),
+  design = list(
+    c("A", "B"), c("A", "B"), c("A", "B"),
+    c("A", "C"), c("A", "C")
+  ),
+  delta = c(rep(-10, 3), rep(-5, 2)),
+  subdelta = rep(0, 5),
+  mod_prev = rep(0.5, 5)
+    
+)
+
+
+# estimand: average treatment effect. It is assumed that there is no prior knowledge of the effect modification (otherwise it would be most likely controlled for)
