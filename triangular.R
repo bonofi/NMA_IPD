@@ -3,6 +3,7 @@
 
 source("./R/trial_simul2.R")
 library(tidyverse)
+library(netmeta)
 
 #### IMT ####
 # settings:
