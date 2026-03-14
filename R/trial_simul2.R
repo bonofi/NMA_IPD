@@ -180,10 +180,11 @@ trial_simul2 <- function(N, delta, mu0 = 20, beta = 2, deltasub = c(0, 10), sigm
   out <- tibble::tibble(
     epsilon = res_err,
     mu0 = mu0,
-    beta = beta,
+    beta_x = beta,
     tot_delta = aver_trt,
-    sub_delta = sub_delta,
-    y = y,
+    sub_delta = sub_delta |> 
+      as.numeric(),
+    y = y |> as.numeric(),
     trt = trt_seq,
     x = x,
     V = paste(
