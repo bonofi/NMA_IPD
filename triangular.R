@@ -112,7 +112,7 @@ nma <- netmeta(TE, seTE, treat1, treat2,
                studlab, data = netdata)
 
 netmeta::netgraph(nma)
-netmeta::netleague(nma)
+netmeta::netleague(nma) 
 
 
 # inconsistency cannot be tested in open loop graph
@@ -124,3 +124,5 @@ print(nma)
 
 # 1) check that benchmark "V"-shaped network is consistent. Precision increases with N
 # 2) close loop (add BC study) and check test of inconsistency 
+
+test <- network_simul()
