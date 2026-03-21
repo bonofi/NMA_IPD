@@ -5,12 +5,12 @@
 #' @param deltasub - vector - equal length of mod_dist; TRT effect in modifier's stratum in IMT  
 #' @param network_settings - list - with elements: 
 #' - K (number of studies) 
-#' - N (vector - sample size in respective study)
+#' - N (vector - min-max range sample size in study; will be Uniformly sampled)
 #' - design (list - TRTs in each study (head-to-head or multiarm); first name is control arm)
 #' - delta (list - TRT effect(s) in each study)
 #' - subdelta (list - TRT effect(s) in study's modifier stratum)
 #' - mode_prev (list - prevalences of modifier's strata in each study; must have equal lenght of corresponding list element in subdelta)
-#' - sigma (vector - residual error in each study)
+#' - sigma (vector - min-max range residual error in study; will be Uniformly sampled)
 #' @description
 #' Number of unique TRTs in network must match number of treatments in IMT, anchored to same control. Design must be any combination of the above treatment (head-to-head or multi-arm). Design in each study determines the network structure (V-shape, triangle, star, etc ...)
 #' 
@@ -24,7 +24,7 @@ network_simul <- function(
     # more arguments from trial_simul2 possible (and in network setting)
     network_settings = list(
       K = 5,
-      N = round(runif(K, min = 100, max = 500)), # by increasing N estim become more precise
+      N = c(100, 500), # by increasing N estim become more precise
       design = list(
         c("A", "B"), c("A", "B"), c("A", "B"),
         c("A", "C"), c("A", "C")
@@ -32,19 +32,20 @@ network_simul <- function(
       delta = as.list(c(rep(-10, K-2), rep(-5, K-3))),
       subdelta = as.list(rep(0, K)),
       mod_prev = as.list(rep(0.5, K)),
-      sigma = runif(K, 0.5, 3), # study specific precision
-      seed = 12
+      sigma = c(0.5, 3), # study specific precision min-max range
+      seed = 45
     )
 ){
   
-  
+
   #### IMT ####
 
   imt <- trial_simul2(
     N = N,
     delta = delta,
     mod_dist = mod_dist,
-    deltasub = deltasub
+    deltasub = deltasub,
+    seed = seed
   )
   
   # check
@@ -59,18 +60,26 @@ network_simul <- function(
   
   
   ## simulate network
+  set.seed(seed)
+  
+  Ns <- round(runif(K, 
+                    min = network_settings$N[1], 
+                    max = network_settings$N[2]))
+  sigmas <- runif(K,
+                  min = network_settings$sigma[1], 
+                  max = network_settings$sigma[2])
   
   # stack network data
   
   ipd_network <- lapply(1:5,
                         function(i)
                           trial_simul2(
-                            N = settings$N[i],
+                            N = Ns[i],
                             trt_names = settings$design[[i]],
                             delta = settings$delta[[i]],
                             deltasub = settings$subdelta[[i]],
                             mod_dist = settings$mod_prev[[i]],
-                            sigma0 = settings$sigma[i],
+                            sigma0 = sigmas[i],
                             seed = seed+i
                           )$data |> 
                           add_column(study = as.character(i),
