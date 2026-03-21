@@ -1,9 +1,41 @@
 #' Simulate treatments network and corresponding ideal multiarm trial (IMT)
+#' @param N - integer - size of IMT
+#' @param delta - vector - TRT effects versus common reference in IMT. TRT names are automatically labelled with letters, A, B, C ...
+#' @param mod_dist - vector - prevalence in TRT modifier strata in IMT
+#' @param deltasub - vector - equal length of mod_dist; TRT effect in modifier's stratum in IMT  
+#' @param network_settings - list - with elements: 
+#' - K (number of studies) 
+#' - N (vector - sample size in respective study)
+#' - design (list - TRTs in each study (head-to-head or multiarm); first name is control arm)
+#' - delta (list - TRT effect(s) in each study)
+#' - subdelta (list - TRT effect(s) in study's modifier stratum)
+#' - mode_prev (list - prevalences of modifier's strata in each study; must have equal lenght of corresponding list element in subdelta)
+#' - sigma (vector - residual error in each study)
+#' @description
+#' Number of unique TRTs in network must match number of treatments in IMT, anchored to same control. Design must be any combination of the above treatment (head-to-head or multi-arm). Design in each study determines the network structure (V-shape, triangle, star, etc ...)
 #' 
-#'  
 
 
-network_simul <- function(){
+network_simul <- function(
+    N = 10000,
+    delta = c(-10, -5),
+    mod_dist = 0.5,
+    deltasub = 0,
+    # more arguments from trial_simul2 possible (and in network setting)
+    network_settings = list(
+      K = 5,
+      N = round(runif(K, min = 100, max = 500)), # by increasing N estim become more precise
+      design = list(
+        c("A", "B"), c("A", "B"), c("A", "B"),
+        c("A", "C"), c("A", "C")
+      ),
+      delta = as.list(c(rep(-10, K-2), rep(-5, K-3))),
+      subdelta = as.list(rep(0, K)),
+      mod_prev = as.list(rep(0.5, K)),
+      sigma = runif(K, 0.5, 3) # study specific precision
+      
+    )
+){
   
   
   #### IMT ####
