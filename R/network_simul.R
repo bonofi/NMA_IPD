@@ -21,9 +21,9 @@ network_simul <- function(
     delta = c(-10, -5),
     mod_dist = 0.5,
     deltasub = 0,
+    K = 5,
     # more arguments from trial_simul2 possible (and in network setting)
     network_settings = list(
-      K = 5,
       N = c(100, 500), # by increasing N estim become more precise
       design = list(
         c("A", "B"), c("A", "B"), c("A", "B"),
@@ -32,9 +32,9 @@ network_simul <- function(
       delta = as.list(c(rep(-10, K-2), rep(-5, K-3))),
       subdelta = as.list(rep(0, K)),
       mod_prev = as.list(rep(0.5, K)),
-      sigma = c(0.5, 3), # study specific precision min-max range
-      seed = 45
-    )
+      sigma = c(0.5, 3) # study specific precision min-max range
+    ),
+    rseed = 45
 ){
   
 
@@ -45,7 +45,7 @@ network_simul <- function(
     delta = delta,
     mod_dist = mod_dist,
     deltasub = deltasub,
-    seed = seed
+    seed = rseed
   )
   
   # check
@@ -58,9 +58,9 @@ network_simul <- function(
     trt_name = contr.treatment(
       n=LETTERS[1:3], base = 3)))
   
-  
   ## simulate network
-  set.seed(seed)
+
+  set.seed(rseed)
   
   Ns <- round(runif(K, 
                     min = network_settings$N[1], 
@@ -80,7 +80,7 @@ network_simul <- function(
                             deltasub = settings$subdelta[[i]],
                             mod_dist = settings$mod_prev[[i]],
                             sigma0 = sigmas[i],
-                            seed = seed+i
+                            seed = rseed+i
                           )$data |> 
                           add_column(study = as.character(i),
                                      .before = 1)
