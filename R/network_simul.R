@@ -71,7 +71,7 @@ network_simul <- function(
   
   # stack network data
   
-  ipd_network <- lapply(1:5,
+  ipd_network <- lapply(1:K,
                         function(i)
                           trial_simul2(
                             N = Ns[i],
@@ -122,6 +122,7 @@ network_simul <- function(
                  studlab, data = netdata)
   
   netmeta::netgraph(nma)
+  
   netmeta::netleague(nma) 
   
   
