@@ -126,3 +126,7 @@ print(nma)
 # 2) close loop (add BC study) and check test of inconsistency 
 
 test <- network_simul()
+
+# 3) show network bias for changing modifier distribution in V-shaped network, for increasing N
+# 4) show bias in network can be managed by re-balancing populations (use twang ?)
+# 5) show similar balancing can occur in privacy setting by simulating IPD from summary IPD
