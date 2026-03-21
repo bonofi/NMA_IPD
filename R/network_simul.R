@@ -32,26 +32,19 @@ network_simul <- function(
       delta = as.list(c(rep(-10, K-2), rep(-5, K-3))),
       subdelta = as.list(rep(0, K)),
       mod_prev = as.list(rep(0.5, K)),
-      sigma = runif(K, 0.5, 3) # study specific precision
-      
+      sigma = runif(K, 0.5, 3), # study specific precision
+      seed = 12
     )
 ){
   
   
   #### IMT ####
-  # settings:
-  # N = 10000 large enough ideal trial
-  # average TRT effects = BA: -10; CA = -5 
-  # modifier = two balanced strata P(V1)=0.5, P(V2)=0.5, 
-  # treatment effect in V1 = 0
-  # treatment effect in V2 = BA: -20; CA: -10
-  # indirect effect BC, by consistency = BA-CA= -10 - (-5) = -5
-  
+
   imt <- trial_simul2(
-    N = 10000,
-    delta = c(-10, -5),
-    mod_dist = 0.5,
-    deltasub = 0
+    N = N,
+    delta = delta,
+    mod_dist = mod_dist,
+    deltasub = deltasub
   )
   
   # check
@@ -66,31 +59,6 @@ network_simul <- function(
   
   
   ## simulate network
-  ## settings:
-  ## N studies = 5
-  ## designs = BA, CA (head-to-head only, no multiarm)
-  ## each study has same the prognostic and modifier distribution as IMT
-  ## common effect = all effects are assumed fixed across different study populations
-  ## sigma = residual variance can vary from study to study
-  ## 
-  
-  
-  set.seed(45)
-  # network settings
-  settings <- list(
-    
-    N = round(runif(5, min = 100, max = 500)), # by increasing N estim become more precise
-    design = list(
-      c("A", "B"), c("A", "B"), c("A", "B"),
-      c("A", "C"), c("A", "C")
-    ),
-    delta = c(rep(-10, 3), rep(-5, 2)),
-    subdelta = rep(0, 5),
-    mod_prev = rep(0.5, 5),
-    sigma = runif(5, 0.5, 3) # study specific precision
-    
-  )
-  
   
   # stack network data
   
@@ -99,11 +67,11 @@ network_simul <- function(
                           trial_simul2(
                             N = settings$N[i],
                             trt_names = settings$design[[i]],
-                            delta = settings$delta[i],
-                            deltasub = settings$subdelta[i],
-                            mod_dist = settings$mod_prev[i],
+                            delta = settings$delta[[i]],
+                            deltasub = settings$subdelta[[i]],
+                            mod_dist = settings$mod_prev[[i]],
                             sigma0 = settings$sigma[i],
-                            seed = 12+i
+                            seed = seed+i
                           )$data |> 
                           add_column(study = as.character(i),
                                      .before = 1)
@@ -155,7 +123,12 @@ network_simul <- function(
   
   print(nma)
   
-  # 1) check that benchmark "V"-shaped network is consistent. Precision increases with N
-  # 2) close loop (add BC study) and check test of inconsistency 
+
+  return(
+    list(
+      IMT = imtmod,
+      NMA = nma
+    )
+  )
   
 }
