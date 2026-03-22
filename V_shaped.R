@@ -5,6 +5,8 @@ source("./R/trial_simul2.R")
 source("./R/network_simul.R")
 library(tidyverse)
 library(netmeta)
+library(emmeans)
+#library(multinma)
 
 # GENERAL SETTINGS
 ##### IMT ####
