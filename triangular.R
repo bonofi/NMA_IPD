@@ -1,4 +1,4 @@
-# simulate triangular network ABC and corresponding ideal multiarm trial (IMT)
+# simulate V-shaped or triangular network ABC and corresponding ideal multiarm trial (IMT)
 # 
 
 source("./R/trial_simul2.R")
