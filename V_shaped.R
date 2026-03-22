@@ -67,7 +67,12 @@ res1 <- lapply(
     samplesize = factor(samplesize, 
                         levels = c("small", "medium", "large")),
     inconsistency = factor(inconsistency,
-                           levels = c("none", "mild", "high"))
+                           levels = c("none", "mild", "high")),
+    estimate = ifelse(
+      inconsistency != "none" & evidence == "IMT", # IMT result redundant in other panels
+      NA_real_,
+      estimate
+      )
   )
 
 
@@ -79,7 +84,13 @@ ggplot(
 ) +
   geom_point(size = 3) +
 facet_wrap(vars(inconsistency)) +
-  geom_point()
+  geom_hline(yintercept = 10, colour  ="red", linetype = 2, alpha = 0.5) + 
+  geom_hline(yintercept = 5, colour  ="red", linetype = 2)  +
+  geom_hline(yintercept = -5, colour  ="red", linetype = 2) +
   xlab("Sample size") +
-  ggtitle("")
+  ggtitle("Estimation in a V-shaped treatment network for increasing inconsistency levels (Nr of studies: 5)")
 
+
+# INTERPRETATION: 
+# 1) inconst none. In medium sample size, bias in AB contrast is entirely due to random error (random precision and/or residual error). This alone is sufficient to cause inconsistency in BC contrast. As precision becomes uniformly high (large sample size), NMA estimates are unbiased.
+# 2) inconsistent. Weight of direct/indirect evidence, which design is affected by bias and how many studies, all determine how bias propagates across the network.Focusing on large sample size, inconsistency affects only one study in majority design AB (mild scenario) also causing bias in BC contrast. Interestingly, by increasing bias for both AB and AC designs seems to cancel out bias in BC design. However, this should be regarded as a change outcome and it stresses how unpredictable bias propagation can be as bias and network size increases.  
