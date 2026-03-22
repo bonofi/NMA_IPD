@@ -52,11 +52,6 @@ network_simul <- function(
   
   imtmod <- lm(y~trt_name + x, data = imt$data)
   
-  summary(imtmod)
-  # check consistency
-  update(imtmod, contrasts = list(
-    trt_name = contr.treatment(
-      n=LETTERS[1:3], base = 3)))
   
   ## simulate network
 
@@ -75,10 +70,10 @@ network_simul <- function(
                         function(i)
                           trial_simul2(
                             N = Ns[i],
-                            trt_names = settings$design[[i]],
-                            delta = settings$delta[[i]],
-                            deltasub = settings$subdelta[[i]],
-                            mod_dist = settings$mod_prev[[i]],
+                            trt_names = network_settings$design[[i]],
+                            delta = network_settings$delta[[i]],
+                            deltasub = network_settings$subdelta[[i]],
+                            mod_dist = network_settings$mod_prev[[i]],
                             sigma0 = sigmas[i],
                             seed = rseed+i
                           )$data |> 
@@ -92,6 +87,7 @@ network_simul <- function(
   
   # estimate: calculate average treatment effect for each study by adjusting for known prognostic factor BUT not for effect modifier
   
+  # TWO-STAGE NMA (Alternative. MULTINMA)
   raw_lm <- split(ipd_network, ipd_network$study) |>
     map_df(
       \(df) lm(y~trt_name + x, data = df) |> 
@@ -123,10 +119,9 @@ network_simul <- function(
   
   netmeta::netgraph(nma)
   
-  netmeta::netleague(nma) 
+  #netmeta::netleague(nma) 
   
-  
-  # inconsistency cannot be tested in open loop graph
+  # inconsistency test
   netmeta:::forest.netsplit(
     netmeta::netsplit(nma, show = "all")
   )
@@ -137,7 +132,10 @@ network_simul <- function(
   return(
     list(
       IMT = imtmod,
-      NMA = nma
+      NMA = nma,
+      data = list(imt = imt$data, 
+                  ind_eff = imt$indir_eff,
+                  ipd_net = ipd_network)
     )
   )
   
