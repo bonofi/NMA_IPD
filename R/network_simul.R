@@ -34,7 +34,8 @@ network_simul <- function(
       mod_prev = as.list(rep(0.5, K)),
       sigma = c(0.5, 3) # study specific precision min-max range
     ),
-    rseed = 45
+    rseed = 45,
+    nma_common = TRUE # show NMA common or random effect results
 ){
   
 
@@ -113,20 +114,71 @@ network_simul <- function(
     )
   
   
-  
   nma <- netmeta(TE, seTE, treat1, treat2, 
                  studlab, data = netdata)
   
   netmeta::netgraph(nma)
-  
-  #netmeta::netleague(nma) 
   
   # inconsistency test
   netmeta:::forest.netsplit(
     netmeta::netsplit(nma, show = "all")
   )
   
-  print(nma)
+  browser()
+  message("IMT: all head-to-head comparisons")
+  imtcntr <- emmeans::contrast(
+    emmeans::emmeans(imtmod, ~trt_name) ,
+    method = "pairwise", 
+  )
+  imtcontr <- imtcntr |> 
+    as.data.frame() |> 
+    dplyr::bind_cols(
+      emmeans:::confint.emmGrid(imtcntr) |> 
+        dplyr::select(dplyr::ends_with("CL"))
+    ) |> 
+    dplyr::rename(stat = t.ratio)
+  
+  print(
+    imtcontr |> 
+      dplyr::mutate(
+        dplyr::across(
+          dplyr::where(is.numeric), 
+          \(x) round(x, 2)
+        )
+      )
+  )
+  message("Two-stage NMA: fixed-effect estimates")
+  # to invert sign use lower.tri
+  nmatype <- ifelse(nma_common, "common", "random")
+  nmacontr <- data.frame(
+    contrast = combn(
+      rownames(nma[[paste0("TE.", nmatype)]]), 2) |> 
+      apply(2, paste, collapse = " - "),
+    estimate = nma[[paste0(
+      "TE.", nmatype)]][upper.tri(nma[[paste0("TE.", nmatype)]])],
+    SE = nma[[paste0("seTE.", nmatype)]][upper.tri(nma[[paste0("TE.", nmatype)]])],
+    df = NA,
+    stat = nma[[paste0("statistic.", nmatype)]][upper.tri(nma[[paste0("TE.", nmatype)]])],
+    p.value = nma[[paste0("pval.", nmatype)]][upper.tri(nma[[paste0("TE.", nmatype)]])],
+    lower.CL = nma[[paste0("lower.", nmatype)]][upper.tri(nma[[paste0("TE.", nmatype)]])],
+    upper.CL = nma[[paste0("upper.", nmatype)]][upper.tri(nma[[paste0("TE.", nmatype)]])]
+  )
+  
+  cat(
+    " Number of studies: k =", nma$k, "\n",
+    "Number of pairwise comparisons: m =", nma$m, "\n",
+    "Number of treatments: n =", nma$n, "\n",
+    "Number of designs: d =", nma$d, "\n"
+  )
+  
+  print(nmacontr |> 
+          dplyr::mutate(
+            dplyr::across(
+              dplyr::where(is.numeric), 
+              \(x) round(x, 2)
+            )
+          )
+  ) 
   
 
   return(
@@ -135,7 +187,17 @@ network_simul <- function(
       NMA = nma,
       data = list(imt = imt$data, 
                   ind_eff = imt$indir_eff,
-                  ipd_net = ipd_network)
+                  ipd_net = ipd_network),
+      est = imtcontr |> 
+        tibble::add_column(
+          evidence = "IMT"
+        ) |> 
+        dplyr::bind_rows(
+          nmacontr |> 
+            tibble::add_column(
+              evidence = "NMA"
+            )
+        )
     )
   )
   
