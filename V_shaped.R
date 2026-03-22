@@ -26,5 +26,60 @@ library(emmeans)
 ## sigma = residual variance can vary from study to study
 
 
-res1 <- network_simul()
+ssizes <- list(small = 1,
+               medium = 10,
+               large = 100)
+
+inconsistency <- list(
+  none = rep(0.5, 5),
+  mild = c(0.5, 0.8, 0.5, 0.5, 0.5),
+  high = c(0.5, 0.8, 0.5, 0.8, 0.8) # more inconsistency in AC minority design
+)
+
+res1 <- lapply(
+  names(inconsistency),
+  function(i) lapply(
+    names(ssizes), 
+    function(j)
+      
+      network_simul(
+        network_settings = list(
+          N = c(10, 50)*ssizes[[j]], 
+          design = list(
+            c("A", "B"), c("A", "B"), c("A", "B"),
+            c("A", "C"), c("A", "C")
+          ),
+          delta = as.list(c(rep(-10, 5-2), rep(-5, 5-3))),
+          subdelta = as.list(rep(0, 5)),
+          mod_prev = as.list(inconsistency[[i]]),
+          sigma = c(0.5, 3)
+        )
+      )$est |> 
+      tibble::add_column(
+        inconsistency = i,
+        samplesize = j
+      )
+    
+  )
+) |> 
+  dplyr::bind_rows() |> 
+  dplyr::mutate(
+    samplesize = factor(samplesize, 
+                        levels = c("small", "medium", "large")),
+    inconsistency = factor(inconsistency,
+                           levels = c("none", "mild", "high"))
+  )
+
+
+# plot 
+
+ggplot(
+  res1,
+  aes(x = samplesize, y = estimate, colour = contrast, shape = evidence)
+) +
+  geom_point(size = 3) +
+facet_wrap(vars(inconsistency)) +
+  geom_point()
+  xlab("Sample size") +
+  ggtitle("")
 
