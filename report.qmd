@@ -1,0 +1,9 @@
+---
+title: "Report"
+author: "bonofi"
+format: html
+editor: visual
+---
+
+## V-shaped network
+
