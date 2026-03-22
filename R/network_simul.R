@@ -124,8 +124,13 @@ network_simul <- function(
     netmeta::netsplit(nma, show = "all")
   )
   
-  browser()
-  message("IMT: all head-to-head comparisons")
+  cat("+++++++****** RESULTS *******")
+
+  cat("\n True indirect effect in IMT: \n")
+  print(imt$indir_eff)
+  
+  message("IMT: all head-to-head comparisons (LSM)")
+
   imtcntr <- emmeans::contrast(
     emmeans::emmeans(imtmod, ~trt_name) ,
     method = "pairwise", 
@@ -147,9 +152,12 @@ network_simul <- function(
         )
       )
   )
-  message("Two-stage NMA: fixed-effect estimates")
-  # to invert sign use lower.tri
+  
   nmatype <- ifelse(nma_common, "common", "random")
+  message(paste0(
+    "Two-stage NMA: ", nmatype, " effect estimates"
+  ))
+  # to invert sign use lower.tri
   nmacontr <- data.frame(
     contrast = combn(
       rownames(nma[[paste0("TE.", nmatype)]]), 2) |> 
