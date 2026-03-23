@@ -67,28 +67,40 @@ res1 <- lapply(
     samplesize = factor(samplesize, 
                         levels = c("small", "medium", "large")),
     inconsistency = factor(inconsistency,
-                           levels = c("none", "mild", "high")),
-    estimate = ifelse(
-      inconsistency != "none" & evidence == "IMT", # IMT result redundant in other panels
-      NA_real_,
-      estimate
-      )
+                           levels = c("none", "mild", "high"))
   )
 
 
 # plot 
 
+res1 |> 
+  dplyr::mutate(
+    estimate = ifelse(
+      inconsistency != "none" & evidence == "IMT", # IMT result redundant in other panels
+      NA_real_,
+      estimate
+    ),
+    lower.CL = ifelse(evidence == "IMT", NA_real_, lower.CL), # dont need to plot this
+    upper.CL = ifelse(evidence == "IMT", NA_real_, upper.CL)
+  ) |> 
 ggplot(
-  res1,
   aes(x = samplesize, y = estimate, colour = contrast, shape = evidence)
 ) +
-  geom_point(size = 3) +
+  geom_pointrange(
+    aes(ymin = lower.CL, ymax = upper.CL) ) +
+  # geom_point(size = 3) +
+  # geom_ribbon(
+  #   data = res1 |> 
+  #     dplyr::filter(evidence == "NMA"),
+  #   aes(
+  #     ymin = lower.CL, ymax = upper.CL)
+  # ) +
 facet_wrap(vars(inconsistency)) +
   geom_hline(yintercept = 10, colour  ="red", linetype = 2, alpha = 0.5) + 
   geom_hline(yintercept = 5, colour  ="red", linetype = 2)  +
   geom_hline(yintercept = -5, colour  ="red", linetype = 2) +
   xlab("Sample size") +
-  ggtitle("Estimation in a V-shaped treatment network for increasing inconsistency levels (Nr of studies: 5)")
+  ggtitle("Estimation in a V-shaped treatment network for increasing inconsistency levels (Nr of studies: 5)") 
 
 
 # INTERPRETATION: 
