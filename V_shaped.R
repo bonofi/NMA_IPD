@@ -1,12 +1,14 @@
 # V-shaped network
 
-
+source("./R/dependencies.R")
 source("./R/trial_simul2.R")
 source("./R/network_simul.R")
 library(tidyverse)
 library(netmeta)
 library(emmeans)
 #library(multinma)
+library(twang)
+library(gcipdr)
 
 # GENERAL SETTINGS
 ##### IMT ####
@@ -96,3 +98,9 @@ facet_wrap(vars(inconsistency)) +
 # INTERPRETATION: 
 # 1) inconst none. In medium sample size, bias in AB contrast is entirely due to random error (random precision and/or residual error). This alone is sufficient to cause inconsistency in BC contrast. As precision becomes uniformly high (large sample size), NMA estimates are unbiased.
 # 2) inconsistent. Weight of direct/indirect evidence, which design is affected by bias and how many studies, all determine how bias propagates across the network.Focusing on large sample size, inconsistency affects only one study in majority design AB (mild scenario) also causing bias in BC contrast. Interestingly, by increasing bias for both AB and AC designs seems to cancel out bias in BC design. However, this should be regarded as a change outcome and it stresses how unpredictable bias propagation can be as bias and network size increases.  
+# 
+# 
+# 
+# ####### BALANCE populations ########
+
+  
