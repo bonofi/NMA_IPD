@@ -8,3 +8,10 @@ download.file(url = url, destfile = pkgFile)
 install.packages(pkgs=pkgFile, type="source", repos=NULL)
 
 unlink(pkgFile)
+
+library(tidyverse)
+library(netmeta)
+library(emmeans)
+#library(multinma)
+library(twang)
+library(gcipdr)
