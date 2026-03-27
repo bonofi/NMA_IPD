@@ -33,7 +33,44 @@ inconsistency <- list(
   high = c(0.5, 0.8, 0.5, 0.8, 0.8) # more inconsistency in AC minority design
 )
 
-res1 <- lapply(
+# REDUNDANT
+# res1 <- lapply(
+#   names(inconsistency),
+#   function(i) lapply(
+#     names(ssizes), 
+#     function(j)
+#       
+#       network_simul(
+#         network_settings = list(
+#           N = c(10, 50)*ssizes[[j]], 
+#           design = list(
+#             c("A", "B"), c("A", "B"), c("A", "B"),
+#             c("A", "C"), c("A", "C")
+#           ),
+#           delta = as.list(c(rep(-10, 5-2), rep(-5, 5-3))),
+#           subdelta = as.list(rep(0, 5)),
+#           mod_prev = as.list(inconsistency[[i]]),
+#           sigma = c(0.5, 3)
+#         )
+#       )$est |> 
+#       tibble::add_column(
+#         inconsistency = i,
+#         samplesize = j
+#       )
+#     
+#   )
+# ) |> 
+#   dplyr::bind_rows() |> 
+#   dplyr::mutate(
+#     samplesize = factor(samplesize, 
+#                         levels = c("small", "medium", "large")),
+#     inconsistency = factor(inconsistency,
+#                            levels = c("none", "mild", "high"))
+#   )
+
+######################### raw results ####################
+
+rawres1 <- lapply(
   names(inconsistency),
   function(i) lapply(
     names(ssizes), 
@@ -51,12 +88,26 @@ res1 <- lapply(
           mod_prev = as.list(inconsistency[[i]]),
           sigma = c(0.5, 3)
         )
-      )$est |> 
+      )
+  )
+); names(rawres1) <- names(inconsistency)
+for (i in names(inconsistency))
+  names(rawres1[[i]]) <- names(ssizes) 
+
+
+# EXTRACT CONTRASTS
+
+res1 <- lapply(
+  names(inconsistency),
+  function(i) lapply(
+    names(ssizes), 
+    function(j)
+      
+      rawres1[[i]][[j]]$est |> 
       tibble::add_column(
         inconsistency = i,
         samplesize = j
       )
-    
   )
 ) |> 
   dplyr::bind_rows() |> 
@@ -67,6 +118,8 @@ res1 <- lapply(
                            levels = c("none", "mild", "high"))
   )
 
+
+################
 
 # plot 
 
@@ -97,9 +150,44 @@ res1 |>
 # INTERPRETATION: 
 # 1) inconst none. In medium sample size, bias in AB contrast is entirely due to random error (random precision and/or residual error). This alone is sufficient to cause inconsistency in BC contrast. As precision becomes uniformly high (large sample size), NMA estimates are unbiased.
 # 2) inconsistent. Weight of direct/indirect evidence, which design is affected by bias and how many studies, all determine how bias propagates across the network.Focusing on large sample size, inconsistency affects only one study in majority design AB (mild scenario) also causing bias in BC contrast. Interestingly, by increasing bias for both AB and AC designs seems to cancel out bias in BC design. However, this should be regarded as a change outcome and it stresses how unpredictable bias propagation can be as bias and network size increases.  
-# 
-# 
-# 
+
+
+###################################### 
 # ####### BALANCE populations ########
+# EXTRACT NETWORK DATA
+
+
+res1dat <- lapply(
+  names(inconsistency),
+  function(i) lapply(
+    names(ssizes), 
+    function(j)
+      
+      rawres1[[i]][[j]]$data$ipd_net |> 
+      tibble::add_column(
+        inconsistency = i,
+        samplesize = j
+      )
+  )
+) |> 
+  dplyr::bind_rows() |> 
+  dplyr::mutate(
+    samplesize = factor(samplesize, 
+                        levels = c("small", "medium", "large")),
+    inconsistency = factor(inconsistency,
+                           levels = c("none", "mild", "high"))
+  )
+
+
+# ATE estimand
+
+
+
+
+
+
+
+
+# ATT estimand
 
   
