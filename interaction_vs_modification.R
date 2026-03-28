@@ -132,7 +132,8 @@ dat_mod <- modification()
 # unbiased average TRT effect 
 summary(lm(y~trt, data = dat_mod))
 
-# slightly biased average TRT effect for higher R^2 if adjusting for modifier
+# slightly biased average TRT effect for higher R^2 if adjusting for modifier. 
+# NOTE: The marginal effect of mofifier, x, is average of contrasts xB-xA in the respective TRT arm, that is, [(-40 - 20)_TRT=1 + (0-0)_TRT=0]/2 = -60/2 = -30
 summary(lm(y~trt + x, data = dat_mod))
 
 # statistical interaction highlights modification effect but returns "messed-up" estimates.
