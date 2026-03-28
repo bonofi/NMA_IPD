@@ -126,10 +126,12 @@ res1 <- lapply(
 res1 |> 
   dplyr::filter(evidence == "NMA") |> 
   ggplot(
-    aes(x = samplesize, y = estimate, colour = contrast) # , shape = evidence
+    aes(x = samplesize, y = estimate, 
+        colour = contrast, group = contrast) # , shape = evidence
   ) +
   # geom_pointrange(
   #   aes(ymin = lower.CL, ymax = upper.CL) ) +
+  geom_line() +
   geom_point(size = 2) +
   facet_wrap(vars(inconsistency)) +
   geom_hline(yintercept = 10, colour  ="red3", linetype = 2, alpha = 0.5) + 
@@ -146,11 +148,13 @@ res1 |>
     caption = "Diamond: IMT for large N; Dot: NMA"
     ) 
 
-
+#########################################################################################################
+#########################################################################################################
 # INTERPRETATION: 
-# 1) inconst none. In medium sample size, bias in AB contrast is entirely due to random error (random precision and/or residual error). This alone is sufficient to cause inconsistency in BC contrast. As precision becomes uniformly high (large sample size), NMA estimates are unbiased.
+# 1) inconsistency none. In medium sample size, bias in AB contrast is entirely due to random error (random precision and/or residual error). This alone is sufficient to cause inconsistency in BC contrast. As precision becomes uniformly high (large sample size), NMA estimates are unbiased.
 # 2) inconsistent. Weight of direct/indirect evidence, which design is affected by bias and how many studies, all determine how bias propagates across the network.Focusing on large sample size, inconsistency affects only one study in majority design AB (mild scenario) also causing bias in BC contrast. Interestingly, by increasing bias for both AB and AC designs seems to cancel out bias in BC design. However, this should be regarded as a change outcome and it stresses how unpredictable bias propagation can be as bias and network size increases.  
-
+#########################################################################################################
+#########################################################################################################
 
 ###################################### 
 # ####### BALANCE populations ########
