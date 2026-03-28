@@ -199,6 +199,10 @@ summary(
      data = rawres1$mild$large$data$imt)
 )
 
+summary(
+  lm(y~trt_name*V + x, 
+     data = rawres1$mild$large$data$imt)
+)
 
 
 

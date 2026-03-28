@@ -43,14 +43,15 @@ summary(
   lm(y~trt + V, data = dat)
 )
 
+## 
+summary(
+  lm(y~trt + V + x, data = dat)
+)
+##
 summary(
   lm(y~trt + V*trt, data = dat)
 )
 ###
-
-summary(
-  lm(y~trt + V + x, data = dat)
-)
 
 
 # the interaction terms are the V2-V1 = 10 and V3-V1 = -40 contrasts respectively. Summing the interaction term with trt yields the stratum specific effect (trt = effect of V1). 
