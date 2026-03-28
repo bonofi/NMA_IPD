@@ -21,7 +21,7 @@ source("./R/network_simul.R")
 ## each study has same prognostic and modifier distribution as IMT
 ## common effect = all effects are assumed fixed across different study populations
 ## sigma = residual variance can vary from study to study
-
+# NOTE: we assume prognostic variable, X, is always adjusted for which already accounts for different X distributions across studies (10.1136/bmjebm-2022-111931)
 
 ssizes <- list(small = 1,
                medium = 10,
@@ -158,8 +158,17 @@ res1 |>
 
 ###################################### 
 # ####### BALANCE populations ########
-# EXTRACT NETWORK DATA
+# ---> assuming IPD is available
+## approach 1: in a two-stage NMA, adjust for other known factor, V (only ATE).
+## approach 2: re-balance studies using IPW methods (ATE and ATT)
+## approach 3: run multi-level MNA 
 
+# ---> assuming IPD is unavailable
+## approach 1: in a two-stage NMA, adjust for other known factor, V.
+## approach 2: run multi-level MNA using summary data (except one study; only ATT)
+## approach 3: GCIPDR and IPW pseudodata
+
+# EXTRACT NETWORK DATA
 
 res1dat <- lapply(
   names(inconsistency),
@@ -185,9 +194,10 @@ res1dat <- lapply(
 
 # ATE estimand
 
-
-
-
+summary(
+  lm(y~trt_name + x + V, 
+     data = rawres1$mild$large$data$imt)
+)
 
 
 
