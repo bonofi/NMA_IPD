@@ -89,6 +89,8 @@ network_simul <- function(
   # estimate: calculate average treatment effect for each study by adjusting for known prognostic factor BUT not for effect modifier
   
   # TWO-STAGE NMA (Alternative. MULTINMA)
+  
+#->#########replace with run_two_stage_nma#####################
   raw_lm <- split(ipd_network, ipd_network$study) |>
     map_df(
       \(df) lm(y~trt_name + x, data = df) |> 
@@ -123,6 +125,7 @@ network_simul <- function(
   netmeta:::forest.netsplit(
     netmeta::netsplit(nma, show = "all")
   )
+#->#########^^^^^^^^^^^^^^##################### end replace
   
   cat("+++++++****** RESULTS *******")
 
@@ -157,6 +160,7 @@ network_simul <- function(
       )
   )
   
+  #->#########replace with run_two_stage_nma#####################
   nmatype <- ifelse(nma_common, "common", "random")
   message(paste0(
     "Two-stage NMA: ", nmatype, " effect estimates"
@@ -195,7 +199,7 @@ network_simul <- function(
             )
           )
   ) 
-  
+  #->#########^^^^^^^^^^^^^^##################### end replace  
 
   return(
     list(
