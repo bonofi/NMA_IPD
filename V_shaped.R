@@ -158,18 +158,22 @@ res1dat <- lapply(
                            levels = c("none", "mild", "high"))
   )
 
+### EXCURSUS: 
 
-# ATE estimand
-
+# Marginal effect of TRT modifier, V. Average of: V2-V1 contrast in arm B (-20), V2-V1 contrast in arm C (-10), V2-V1 contrast in control arm A (0) -> (-20 - 10 + 0)/3 = -30/3 = -10 
 summary(
   lm(y~trt_name + x + V, 
      data = rawres1$mild$large$data$imt)
 )
-
+# TRT-V interaction returns V2-V1 contrast in the respective arm, B and C (e.g., -20 and -10), TRT_B and TRT_C is respective effect in V1 (0), V2 is effect in control A (0)
 summary(
   lm(y~trt_name*V + x, 
      data = rawres1$mild$large$data$imt)
 )
+
+
+# ATE estimand
+
 
 
 

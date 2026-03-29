@@ -137,7 +137,7 @@ summary(lm(y~trt, data = dat_mod))
 summary(lm(y~trt + x, data = dat_mod))
 
 # statistical interaction highlights modification effect but returns "messed-up" estimates.
-# In fact, in this clean scenario (no other prognostic variables) the TRT effect is equal to the effect in group A and the interaction is equal to the contrast between group B and A (B-A), which means the actual (unbiased) effect in group B is trt + interaction. Therefore, all parameters are thrown all over but still interpretable if put in correct slot. If prognostic factors are present and unaccounted for, the interaction terms will be biased
+# In fact, TRT is equal to the effect in stratum A, the interaction is equal to the contrast between group B and A (B-A) in active arm TRT=1, and xB is the effect in control TRT=0. That is, the unbiased effect in strtum B is trt + interaction. The total effect is the sum of all parameters which are thrown all over but still interpretable. 
 summary(lm(y~x*trt, data = dat_mod))
 
 # SUBGROUP analysis: unbiased subgroup effects whose average correctly returns the true average TRT effect
