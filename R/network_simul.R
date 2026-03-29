@@ -141,10 +141,14 @@ network_simul <- function(
       emmeans:::confint.emmGrid(imtcntr) |> 
         dplyr::select(dplyr::ends_with("CL"))
     ) |> 
+    tibble::add_column(model = NA, .after = Inf) |> 
     dplyr::rename(stat = t.ratio)
   
   print(
     imtcontr |> 
+      dplyr::select(
+        !dplyr::any_of("model")
+      ) |> 
       dplyr::mutate(
         dplyr::across(
           dplyr::where(is.numeric), 
@@ -169,7 +173,8 @@ network_simul <- function(
     stat = nma[[paste0("statistic.", nmatype)]][upper.tri(nma[[paste0("TE.", nmatype)]])],
     p.value = nma[[paste0("pval.", nmatype)]][upper.tri(nma[[paste0("TE.", nmatype)]])],
     lower.CL = nma[[paste0("lower.", nmatype)]][upper.tri(nma[[paste0("TE.", nmatype)]])],
-    upper.CL = nma[[paste0("upper.", nmatype)]][upper.tri(nma[[paste0("TE.", nmatype)]])]
+    upper.CL = nma[[paste0("upper.", nmatype)]][upper.tri(nma[[paste0("TE.", nmatype)]])],
+    model = paste0(nmatype, " effect")
   )
   
   cat(
@@ -180,6 +185,9 @@ network_simul <- function(
   )
   
   print(nmacontr |> 
+          dplyr::select(
+            !dplyr::any_of("model")
+          ) |>  
           dplyr::mutate(
             dplyr::across(
               dplyr::where(is.numeric), 

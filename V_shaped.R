@@ -54,7 +54,8 @@ rawres1 <- lapply(
           subdelta = as.list(rep(0, 5)),
           mod_prev = as.list(inconsistency[[i]]),
           sigma = c(0.5, 3)
-        )
+        ),
+        nma_common = TRUE
       )
   )
 ); names(rawres1) <- names(inconsistency)
@@ -112,7 +113,10 @@ res1 |>
   ggplot2::labs(
     x = "Sample size", 
     title = "Estimation in a V-shaped treatment network for increasing inconsistency levels (Nr of studies: 5)", 
-    caption = "Diamond: IMT for large N; Dot: NMA"
+    caption = paste0(
+      "Diamonds: IMT for large N; Dots: NMA (", 
+      unique(res1$model),")"
+    )
     ) 
 
 #########################################################################################################
@@ -174,7 +178,14 @@ summary(
 
 # ATE estimand
 
-
+prova <- res1dat |> 
+  filter(
+    inconsistency == "high",
+    samplesize == "small"
+  ) |> 
+  run_two_stage_nma(
+    study_level_model_formula = formula(y~trt_name + x + V)
+  )
 
 
 # ATT estimand
