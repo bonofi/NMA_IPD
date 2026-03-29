@@ -33,40 +33,7 @@ inconsistency <- list(
   high = c(0.5, 0.8, 0.5, 0.8, 0.8) # more inconsistency in AC minority design
 )
 
-# REDUNDANT
-# res1 <- lapply(
-#   names(inconsistency),
-#   function(i) lapply(
-#     names(ssizes), 
-#     function(j)
-#       
-#       network_simul(
-#         network_settings = list(
-#           N = c(10, 50)*ssizes[[j]], 
-#           design = list(
-#             c("A", "B"), c("A", "B"), c("A", "B"),
-#             c("A", "C"), c("A", "C")
-#           ),
-#           delta = as.list(c(rep(-10, 5-2), rep(-5, 5-3))),
-#           subdelta = as.list(rep(0, 5)),
-#           mod_prev = as.list(inconsistency[[i]]),
-#           sigma = c(0.5, 3)
-#         )
-#       )$est |> 
-#       tibble::add_column(
-#         inconsistency = i,
-#         samplesize = j
-#       )
-#     
-#   )
-# ) |> 
-#   dplyr::bind_rows() |> 
-#   dplyr::mutate(
-#     samplesize = factor(samplesize, 
-#                         levels = c("small", "medium", "large")),
-#     inconsistency = factor(inconsistency,
-#                            levels = c("none", "mild", "high"))
-#   )
+
 
 ######################### raw results ####################
 
