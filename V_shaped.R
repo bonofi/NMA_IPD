@@ -3,7 +3,7 @@
 source("./R/dependencies.R")
 source("./R/trial_simul2.R")
 source("./R/network_simul.R")
-
+source("./R/run_two_stage_nma.R")
 
 # GENERAL SETTINGS
 ##### IMT ####
