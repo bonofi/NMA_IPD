@@ -16,6 +16,7 @@ library(twang)
 library(devtools)
 library(remotes)
 
-#install_github("bonorico/gcipdr")
-pak::pak("bonorico/gcipdr")
+devtools::install_github("bonorico/gcipdr")
+#pak::pak("bonorico/gcipdr")
+
 library(gcipdr)

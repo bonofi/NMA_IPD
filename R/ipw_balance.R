@@ -11,8 +11,7 @@ ipw_balance <- function(ipd_network,
 {
   
   estimand <- match.arg(estimand)
-  
-  browser()
+
   
   # factorize study label
   ipd_network$study <- as.factor(ipd_network$study)
@@ -25,23 +24,77 @@ ipw_balance <- function(ipd_network,
     verbose = FALSE,
     stop.method = stop_rule,
     n.trees = n_trees)
- 
   
-  # check convergence
-  #par(mfrow=c(3, 2))
- 
-   res$psList[[1]]$ps[res$psList[[1]]$treat == 1, 1] |> hist()
- 
-   res$psList[[1]]$w[res$psList[[1]]$treat == 1, 1] |> hist()
-   
-   bal.table(res) |> 
-     filter(var == "V1")
-   
-   plot(res$psList[[1]])
+  browser()
+  
+  # res$psList[[1]]$ps[res$psList[[1]]$treat == 1, 1] |> hist()
+  # 
+  # res$psList[[1]]$w[res$psList[[1]]$treat == 1, 1] |> hist()
+  # 
+  # bal.table(res) |> 
+  #   filter(var == "V2")
+
+  n <- length(res$psList)
+  
+  data <- ipd_network |> 
+    tibble::rownames_to_column("subjid") |> 
+    dplyr::left_join(
+      lapply(1:n,
+             function(i)
+               data.frame(
+                 ps = res$psList[[i]]$ps[res$psList[[i]]$treat == 1, 1],
+                 ps_weight = res$psList[[i]]$w[res$psList[[i]]$treat == 1, 1],
+                 study = i
+               )
+      ) |> 
+        dplyr::bind_rows() |> 
+        tibble::rownames_to_column("subjid") |> 
+        dplyr::mutate(study = as.factor(study)),
+      by=c("study", "subjid")
+    )
+  
+  
+  res
+  
+  
 }
 
 
-ipw_balance(
+### Plot tools for diangostics
+
+
+mnps_plot <- function(res, # mnps object
+                      layer = 1){
+  
+  n <- length(res$psList)
+  k <- round(n/2)
+  
+  diagnostics <- c(
+    "1" = "Balance convergence: ",
+    "2" = "PS overlap: ",
+    "3" = "Before-After weighting: ",
+    "4" = "Before-After weighting: ",
+    "5" = "Before-After weighting: "
+  )
+  
+
+  
+  # convergence
+  par(mfrow = c(k, k))
+  for (i in 1:n)
+    plot(
+      res$psList[[i]],
+      plots = layer,
+      main  =  paste(ifelse(i == 1, 
+                            diagnostics[i], 
+                            ""), 
+                     "Study ", i, "vs others")
+    )
+  
+  
+}
+
+prova <- ipw_balance(
   res1dat |> 
     filter(
       inconsistency == "high",
