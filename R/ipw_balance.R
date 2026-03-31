@@ -3,8 +3,15 @@
 #' 
 
 
-ipw_balance <- function(ipd_network)
+ipw_balance <- function(ipd_network, 
+                        model_formula = as.formula(study ~ V1 + V2),  # do not balance for X
+                        estimand = c("ATE", "ATT"),
+                        stop_rule = "ks.mean",   # can be a vector
+                        n_trees = 3000)
 {
+  
+  estimand <- match.arg(estimand)
+  
   browser()
   
   # factorize study label
@@ -12,12 +19,12 @@ ipw_balance <- function(ipd_network)
 
   
   res <- twang::mnps(
-    study ~ x + V1 + V2,
+    model_formula,
     data = ipd_network,
-    estimand = "ATE",
+    estimand = estimand,
     verbose = FALSE,
-    stop.method = c("es.mean", "ks.mean"),
-    n.trees = 3000)
+    stop.method = stop_rule,
+    n.trees = n_trees)
  
   
   # check convergence

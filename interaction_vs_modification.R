@@ -1,5 +1,5 @@
 # Example showing the difference between interaction and effect modification
-# Cytel Inc
+
 
 
 # simulate interaction effect data
