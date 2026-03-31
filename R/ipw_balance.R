@@ -25,6 +25,7 @@ ipw_balance <- function(ipd_network,
     stop.method = stop_rule,
     n.trees = n_trees)
   
+  
   browser()
   
   # res$psList[[1]]$ps[res$psList[[1]]$treat == 1, 1] |> hist()
@@ -48,9 +49,26 @@ ipw_balance <- function(ipd_network,
     dplyr::mutate(study = as.factor(study))
   
   
+  # print diagnostics
+  
+  pdf(paste0(
+    "./output/inconsistency-", unique(ipd_network$inconsistency),
+    "_samplesize-", unique(ipd_network$samplesize), ".pdf"
+  ))
+  
+  plot(res)
+  plot(res, plots = 2)
   ggplot(weights,
          aes(study, ps)) + 
-    geom_boxplot()
+    geom_boxplot() + 
+    labs(title = "Propensity scores")
+  plot(res, plots = 3)
+  plot(res, plots = 4)
+  plot(res, plots = 5)
+  
+  dev.off()
+  
+  
   
   data <- ipd_network |> 
     # not super clean subject identification but should work (optimal i-studyid)
