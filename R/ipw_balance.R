@@ -4,7 +4,7 @@
 
 
 ipw_balance <- function(ipd_network, 
-                        model_formula = as.formula(study ~ V1 + V2),  # do not balance for X
+                        model_formula = as.formula(study ~ x + V1 + V2),  # do not balance for X
                         estimand = c("ATE", "ATT"),
                         stop_rule = "ks.mean",   # can be a vector
                         n_trees = 3000)
@@ -35,33 +35,39 @@ ipw_balance <- function(ipd_network,
   #   filter(var == "V2")
 
   n <- length(res$psList)
+  weights <- lapply(1:n,
+                    function(i)
+                      data.frame(
+                        ps = res$psList[[i]]$ps[res$psList[[i]]$treat == 1, 1],
+                        ps_weight = res$psList[[i]]$w[res$psList[[i]]$treat == 1, 1],
+                        study = i
+                      )
+  )|> 
+    dplyr::bind_rows() |> 
+    tibble::rownames_to_column("subjid") |> 
+    dplyr::mutate(study = as.factor(study))
+  
+  
+  ggplot(weights,
+         aes(study, ps)) + 
+    geom_boxplot()
   
   data <- ipd_network |> 
+    # not super clean subject identification but should work (optimal i-studyid)
     tibble::rownames_to_column("subjid") |> 
     dplyr::left_join(
-      lapply(1:n,
-             function(i)
-               data.frame(
-                 ps = res$psList[[i]]$ps[res$psList[[i]]$treat == 1, 1],
-                 ps_weight = res$psList[[i]]$w[res$psList[[i]]$treat == 1, 1],
-                 study = i
-               )
-      ) |> 
-        dplyr::bind_rows() |> 
-        tibble::rownames_to_column("subjid") |> 
-        dplyr::mutate(study = as.factor(study)),
+      weights,
       by=c("study", "subjid")
     )
   
+  # run model with weights
   
-  res
-  
+  mod <- lm(y~trt_name, data = data, weights = ps_weight)
   
 }
 
 
 ### Plot tools for diangostics
-
 
 mnps_plot <- function(res, # mnps object
                       layer = 1){
