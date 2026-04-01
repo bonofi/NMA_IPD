@@ -33,6 +33,8 @@ ipw_balance <- function(ipd_network,
   # bal.table(res) |> 
   #   filter(var == "V2")
 
+  baltable <- twang::bal.table(res)
+  
   n <- length(res$psList)
   weights <- lapply(1:n,
                     function(i)
@@ -49,6 +51,9 @@ ipw_balance <- function(ipd_network,
   browser()
   # print diagnostics
   
+  if (!dir.exists("./output/")) 
+    dir.create("./output/")
+  
   pdf(paste0(
     "./output/inconsistency-", unique(ipd_network$inconsistency),
     "_samplesize-", unique(ipd_network$samplesize), ".pdf"
@@ -64,6 +69,16 @@ ipw_balance <- function(ipd_network,
   plot(res, plots = 4)
   plot(res, plots = 5)
   
+  grid::grid.newpage()
+  gridExtra::grid.table(
+    baltable |> 
+      dplyr::filter(var == "V1")
+  )
+  grid::grid.newpage()
+  gridExtra::grid.table(
+    baltable |> 
+      dplyr::filter(var == "V2")
+  )
   dev.off()
   
   
