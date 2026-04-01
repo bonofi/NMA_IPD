@@ -7,6 +7,8 @@ download.file(url = url, destfile = pkgFile)
 install.packages(pkgs=pkgFile, type="source", repos=NULL)
 unlink(pkgFile)
 
+library(gridExtra)
+
 library(tidyverse)
 library(netmeta)
 library(emmeans)
@@ -16,7 +18,12 @@ library(twang)
 library(devtools)
 library(remotes)
 
-devtools::install_github("bonorico/gcipdr")
+#devtools::install_github("bonorico/gcipdr")
 #pak::pak("bonorico/gcipdr")
 
-library(gcipdr)
+#library(gcipdr)
+
+# source files manually
+sapply(
+  list.files("./gcipdr/R/", 
+             full.names = TRUE), source)
