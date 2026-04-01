@@ -87,33 +87,53 @@ ipw_balance <- function(ipd_network,
   
   mod <- lm(y~trt_name, data = data, weights = ps_weight)
   
-  Vpror <- glm(V2 ~ trt_name + study, data = data, weights = ps_weight) |> 
-    predict(type = "response")
-  
-  data.frame(pred=Vpror, V2 = data$V2, study = data$study, trt = data$trt_name) |> 
-    group_by(study, trt, V2) |> 
-    filter(V2 ==1 & trt != "A") |> 
-    summarise( mean_V2 = mean(pred)) |> 
-    ungroup() |> 
-    select(!any_of("V2")) |> 
+
+  # interpret ATE before-after weighting
+  baltable |> 
+    filter(var == "V2") |> 
+    select(tmt1, mean1, stop.method) |> 
+    bind_rows(
+      baltable |> 
+        filter(var == "V2") |> 
+        select(tmt2, mean2, stop.method) |>
+        rename(tmt1 = tmt2, mean1 = mean2)
+    ) |> distinct() |> 
+    rename(
+      study = tmt1,
+      mean_V2 = mean1
+    ) |> 
+    mutate(
+      mean_V1 = 1 - mean_V2,
+      .after = mean_V2
+    ) |> 
+    arrange(desc(stop.method)) |> 
+    left_join(
+      data |> 
+        distinct(study, trt_name) |> 
+        filter(trt_name != "A"),
+      by = "study"
+    ) |> 
     rowwise() |> 
     mutate(
-      mean_V1 = 1-mean_V2,
       weight_eff = case_when(
-        trt == "B" ~ weighted.mean(
+        trt_name == "B" ~ weighted.mean(
           c(-20,0), c(mean_V2, mean_V1)),
-        trt == "C" ~ weighted.mean(
+        trt_name == "C" ~ weighted.mean(
           c(-10,0), c(mean_V2, mean_V1)),
         TRUE ~ NA_real_
-        )
-      ) |> 
-    group_by(trt) |> 
-    summarise(ATE = mean(weight_eff))
-    
-    
+      )
+    ) |> 
+    left_join(
+      data |> count(study),
+      by = "study"
+    ) |> 
+    group_by(stop.method, trt_name) |> 
+    summarise(ATE = weighted.mean(weight_eff, n))
   
   
 }
+
+
 
 
 ### Plot tools for diangostics
