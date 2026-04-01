@@ -115,7 +115,7 @@ res1 |>
     title = "Estimation in a V-shaped treatment network for increasing inconsistency levels (Nr of studies: 5)", 
     caption = paste0(
       "Diamonds: IMT for large N; Dots: NMA (", 
-      unique(res1$model),")"
+      unique(na.omit(res1$model)),")"
     )
     ) 
 
