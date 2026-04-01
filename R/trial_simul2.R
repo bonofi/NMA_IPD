@@ -178,6 +178,7 @@ trial_simul2 <- function(N, delta, mu0 = 20, beta = 2, deltasub = c(0, 10), sigm
   
   
   out <- tibble::tibble(
+    subjid = as.character(1:N),
     epsilon = res_err,
     mu0 = mu0,
     beta_x = beta,

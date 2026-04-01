@@ -19,14 +19,12 @@ ipw_balance <- function(ipd_network,
   
   res <- twang::mnps(
     model_formula,
-    data = ipd_network,
+    data = ipd_network |> 
+      as.data.frame(),
     estimand = estimand,
     verbose = FALSE,
     stop.method = stop_rule,
     n.trees = n_trees)
-  
-  
-  browser()
   
   # res$psList[[1]]$ps[res$psList[[1]]$treat == 1, 1] |> hist()
   # 
@@ -41,14 +39,14 @@ ipw_balance <- function(ipd_network,
                       data.frame(
                         ps = res$psList[[i]]$ps[res$psList[[i]]$treat == 1, 1],
                         ps_weight = res$psList[[i]]$w[res$psList[[i]]$treat == 1, 1],
-                        study = i
+                        study = i,
+                        usubjid = paste0(i, "-", 1:sum(res$psList[[i]]$treat == 1))
                       )
   )|> 
     dplyr::bind_rows() |> 
-    tibble::rownames_to_column("subjid") |> 
     dplyr::mutate(study = as.factor(study))
   
-  
+  browser()
   # print diagnostics
   
   pdf(paste0(
@@ -71,11 +69,9 @@ ipw_balance <- function(ipd_network,
   
   
   data <- ipd_network |> 
-    # not super clean subject identification but should work (optimal i-studyid)
-    tibble::rownames_to_column("subjid") |> 
     dplyr::left_join(
       weights,
-      by=c("study", "subjid")
+      by=c("study", "usubjid")
     )
   
   # run model with weights

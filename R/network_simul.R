@@ -78,8 +78,12 @@ network_simul <- function(
                             sigma0 = sigmas[i],
                             seed = rseed+i
                           )$data |> 
-                          add_column(study = as.character(i),
-                                     .before = 1)
+                          tibble::add_column(study = as.character(i),
+                                     .before = 1) |> 
+                          dplyr::rowwise() |> 
+                          dplyr::mutate(
+                            usubjid = paste0(study,"-", subjid)
+                          ) |> dplyr::ungroup()
   ) |> 
     bind_rows()
   
