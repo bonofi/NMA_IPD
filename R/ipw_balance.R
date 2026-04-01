@@ -4,7 +4,7 @@
 
 
 ipw_balance <- function(ipd_network, 
-                        model_formula = as.formula(study ~ x + V1 + V2),  # do not balance for X
+                        model_formula = as.formula(study ~ x + V2),  # do not balance for X
                         estimand = c("ATE", "ATT"),
                         stop_rule = "ks.mean",   # can be a vector
                         n_trees = 3000)
@@ -25,13 +25,7 @@ ipw_balance <- function(ipd_network,
     verbose = FALSE,
     stop.method = stop_rule,
     n.trees = n_trees)
-  
-  # res$psList[[1]]$ps[res$psList[[1]]$treat == 1, 1] |> hist()
-  # 
-  # res$psList[[1]]$w[res$psList[[1]]$treat == 1, 1] |> hist()
-  # 
-  # bal.table(res) |> 
-  #   filter(var == "V2")
+ 
 
   baltable <- twang::bal.table(res)
   
@@ -48,7 +42,6 @@ ipw_balance <- function(ipd_network,
     dplyr::bind_rows() |> 
     dplyr::mutate(study = as.factor(study))
   
-  browser()
   # print diagnostics
   
   if (!dir.exists("./output/")) 
@@ -70,11 +63,11 @@ ipw_balance <- function(ipd_network,
   plot(res, plots = 5)
   
   grid::grid.newpage()
-  gridExtra::grid.table(
-    baltable |> 
-      dplyr::filter(var == "V1")
-  )
-  grid::grid.newpage()
+  # gridExtra::grid.table(
+  #   baltable |> 
+  #     dplyr::filter(var == "V1")
+  # )
+  # grid::grid.newpage()
   gridExtra::grid.table(
     baltable |> 
       dplyr::filter(var == "V2")
@@ -89,9 +82,36 @@ ipw_balance <- function(ipd_network,
       by=c("study", "usubjid")
     )
   
+  browser()
   # run model with weights
   
   mod <- lm(y~trt_name, data = data, weights = ps_weight)
+  
+  Vpror <- glm(V2 ~ trt_name + study, data = data, weights = ps_weight) |> 
+    predict(type = "response")
+  
+  data.frame(pred=Vpror, V2 = data$V2, study = data$study, trt = data$trt_name) |> 
+    group_by(study, trt, V2) |> 
+    filter(V2 ==1 & trt != "A") |> 
+    summarise( mean_V2 = mean(pred)) |> 
+    ungroup() |> 
+    select(!any_of("V2")) |> 
+    rowwise() |> 
+    mutate(
+      mean_V1 = 1-mean_V2,
+      weight_eff = case_when(
+        trt == "B" ~ weighted.mean(
+          c(-20,0), c(mean_V2, mean_V1)),
+        trt == "C" ~ weighted.mean(
+          c(-10,0), c(mean_V2, mean_V1)),
+        TRUE ~ NA_real_
+        )
+      ) |> 
+    group_by(trt) |> 
+    summarise(ATE = mean(weight_eff))
+    
+    
+  
   
 }
 
