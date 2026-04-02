@@ -214,12 +214,14 @@ network_simul <- function(
                   ipd_net = ipd_network),
       est = imtcontr |> 
         tibble::add_column(
-          evidence = "IMT"
+          evidence = "IMT",
+          estimand = "ATE"
         ) |> 
         dplyr::bind_rows(
           nmacontr |> 
             tibble::add_column(
-              evidence = "NMA"
+              evidence = "NMA",
+              estimand = "ATE"
             )
         )
     )
