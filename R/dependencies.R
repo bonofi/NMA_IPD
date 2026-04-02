@@ -24,6 +24,6 @@ library(remotes)
 #library(gcipdr)
 
 # source files manually
-sapply(
-  list.files("./gcipdr/R/", 
-             full.names = TRUE), source)
+# sapply(
+#   list.files("./gcipdr/R/", 
+#              full.names = TRUE), source)

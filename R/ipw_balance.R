@@ -4,8 +4,9 @@
 
 
 ipw_balance <- function(ipd_network, 
-                        model_formula = as.formula(study ~ x + V2),  # do not balance for X
+                        model_formula = as.formula(study ~ x + V1 + V2),  # do not balance for X
                         estimand = c("ATE", "ATT"),
+                        ref_study = "1",   # for ATT estimation
                         stop_rule = "ks.mean",   # can be a vector
                         n_trees = 3000)
 {
@@ -22,6 +23,8 @@ ipw_balance <- function(ipd_network,
     data = ipd_network |> 
       as.data.frame(),
     estimand = estimand,
+    treatATT = ifelse(estimand == "ATE", 
+                      NULL, ref_study),
     verbose = FALSE,
     stop.method = stop_rule,
     n.trees = n_trees)
@@ -74,20 +77,15 @@ ipw_balance <- function(ipd_network,
   )
   dev.off()
   
-  
-  
+
+  # data with weights
   data <- ipd_network |> 
     dplyr::left_join(
       weights,
       by=c("study", "usubjid")
     )
-  
-  browser()
-  # run model with weights
-  
-  mod <- lm(y~trt_name, data = data, weights = ps_weight)
-  
 
+  
   # interpret ATE before-after weighting
   baltable |> 
     filter(var == "V2") |> 
@@ -130,44 +128,41 @@ ipw_balance <- function(ipd_network,
     group_by(stop.method, trt_name) |> 
     summarise(ATE = weighted.mean(weight_eff, n))
   
+  ####  RUN IPWed MODEL ##############
+  # weighted model for average effect
+  mod <- lm(y~trt_name, data = data, weights = ps_weight)
   
-}
-
-
-
-
-### Plot tools for diangostics
-
-mnps_plot <- function(res, # mnps object
-                      layer = 1){
+  # (indirect) contrasts
+  modcntr <- emmeans::contrast(
+    emmeans::emmeans(mod, ~trt_name) ,
+    method = "pairwise", 
+  )
+  modcontr <- modcntr |> 
+    as.data.frame() |> 
+    dplyr::bind_cols(
+      emmeans:::confint.emmGrid(modcntr) |> 
+        dplyr::select(dplyr::ends_with("CL"))
+    ) |> 
+    tibble::add_column(model = NA, .after = Inf) |> 
+    dplyr::rename(stat = t.ratio)
   
-  n <- length(res$psList)
-  k <- round(n/2)
   
-  diagnostics <- c(
-    "1" = "Balance convergence: ",
-    "2" = "PS overlap: ",
-    "3" = "Before-After weighting: ",
-    "4" = "Before-After weighting: ",
-    "5" = "Before-After weighting: "
+  return(
+    list(
+      rewres = res,
+      weighted_mod = mod,
+      ps_weights = data
+      est = modcontr |> 
+        tibble::add_column(
+          evidence = paste0("IPW-", estimand)
+        )
+    )
   )
   
-
-  
-  # convergence
-  par(mfrow = c(k, k))
-  for (i in 1:n)
-    plot(
-      res$psList[[i]],
-      plots = layer,
-      main  =  paste(ifelse(i == 1, 
-                            diagnostics[i], 
-                            ""), 
-                     "Study ", i, "vs others")
-    )
-  
-  
 }
+
+
+
 
 prova <- ipw_balance(
   res1dat |> 
