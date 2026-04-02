@@ -1,0 +1,7 @@
+#' MultiNMA balancing
+#' 
+#' 
+#' 
+
+
+multinma <- function()
