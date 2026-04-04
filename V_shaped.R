@@ -10,10 +10,15 @@ source("./R/run_two_stage_nma.R")
 # settings:
 # N = 10000 large enough ideal trial
 # average TRT effects = BA: -10; CA = -5 
-# modifier = two balanced strata P(V1)=0.5, P(V2)=0.5, 
+# modifier prevalence: we assume prevalence in general population, P(V1),
+#  is equal to prevalence in trial = 0.5
+# --> modifier = two balanced strata P(V1)=0.5, P(V2)=0.5, 
 # treatment effect in V1 = 0
 # treatment effect in V2 = BA: -20; CA: -10
 # indirect effect BC, by consistency = BA-CA= -10 - (-5) = -5
+# estimand: ATE = ATT
+# reference trial = we assume reference trial is Nr 1 where P(V1) = 0.5
+# ATE interpretation: if P(V1) not 0.5 in some trial, ATE = average effect across trials.
 ## simulate network ######
 ## settings:
 ## N studies = 5
@@ -176,7 +181,7 @@ summary(
 )
 
 
-# ATE estimand
+# ATE estimand: average effect across trials
 
 prova <- res1dat |> 
   filter(
@@ -188,6 +193,6 @@ prova <- res1dat |>
   )
 
 
-# ATT estimand
+# ATT estimand: effect in reference tiral Nr 1
 
   
