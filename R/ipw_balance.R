@@ -151,7 +151,7 @@ ipw_balance <- function(ipd_network,
     list(
       rewres = res,
       weighted_mod = mod,
-      ps_weights = data
+      ps_weights = data,
       est = modcontr |> 
         tibble::add_column(
           evidence = "IPW",
