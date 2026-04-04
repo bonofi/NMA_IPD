@@ -134,7 +134,10 @@ res1 |>
 
 ###################################### 
 # ####### BALANCE populations ########
+# #######################################
 # ---> assuming IPD is available
+# #######################################
+
 ## approach 1: in a two-stage NMA, adjust for other known factor, V (only ATE).
 ## approach 2: re-balance studies using IPW methods (ATE and ATT)
 ## approach 3: run multi-level MNA 
@@ -180,8 +183,9 @@ summary(
      data = rawres1$mild$large$data$imt)
 )
 
-
+############################################################
 # ATE estimand: average effect across trials
+############################################################
 
 prova <- res1dat |> 
   filter(
@@ -192,7 +196,26 @@ prova <- res1dat |>
     study_level_model_formula = formula(y~trt_name + x + V)
   )
 
-
+#############################################################
 # ATT estimand: effect in reference tiral Nr 1
-
+#############################################################
   
+
+########################################################################
+# ---> assuming IPD is NOT available for all studies except study Nr 1
+# ######################################################################
+
+
+
+
+
+
+
+
+
+
+########################################################################
+# ---> assuming IPD is NOT available for all studies
+# ######################################################################
+
+
