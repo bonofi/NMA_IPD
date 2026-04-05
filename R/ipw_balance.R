@@ -155,7 +155,8 @@ ipw_balance <- function(ipd_network,
       est = modcontr |> 
         tibble::add_column(
           evidence = "IPW",
-          estimand = estimand
+          estimand = estimand,
+          level = "IPD"
         )
     )
   )
