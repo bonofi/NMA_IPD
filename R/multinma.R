@@ -8,6 +8,7 @@ multinma <- function(ipd_network,
                      modelformula = as.formula(~x + V),   # ~(x + V)*.trt
                      datalevel = c("ipd", "agd", "ipd-agd"),
                      model = c("fixed", "random"),
+                     reverse_effects = TRUE,   # 
                      n_chains = 4,
                      n_iter = 2000,
                      seed = 87632
@@ -27,6 +28,12 @@ multinma <- function(ipd_network,
               trt_ref = "A"
               )
     )
+  
+  else if (
+    datalevel == "ipd-agd"
+  ) {
+    
+  }
     
   png("./output/network.png")
   multinma:::plot.nma_data(
@@ -69,7 +76,47 @@ multinma <- function(ipd_network,
   
   browser()
   
-  multinma:::relative_effects(nma, all_contrasts = TRUE)
+  multinma:::relative_effects(nma, all_contrasts = TRUE)$summary |> 
+    dplyr::rowwise() |> 
+    dplyr::mutate(
+      contrast = ifelse(reverse_effects,
+                        paste0(.trta, " - ", .trtb),
+                        paste0(.trtb, " - ", .trta)
+      ),
+      estimate = ifelse(reverse_effects,
+                        -mean,
+                        mean
+      ),
+      lower.CL = ifelse(reverse_effects,
+                        -`97.5%`,
+                        `2.5%`
+      ),
+      upper.CL = ifelse(reverse_effects,
+                        -`2.5%`,
+                        `97.5%`
+      ),
+      df = NA,
+      stat = NA,
+      p.value = NA,
+      model = ifelse(model == "fixed", "common effect", 
+                     ifelse(model =="random", "random effect", NA)),
+      evidence = "ML-NMR",  # multilevel network metaregression
+      estimand = ifelse(
+        datalevel %in% c("ipd", "agd"), "ATE", 
+        ifelse(datalevel == "ipd-agd", "ATT", NA)
+      ),
+      level = toupper(datalevel) 
+    ) |> 
+    dplyr::rename(
+      SE = sd
+    ) |> 
+    dplyr::select(
+      contrast, estimate, SE, df, stat, p.value,
+      lower.CL, upper.CL, model, evidence, estimand,
+      level
+    )
+  
+  
   
   
 }
