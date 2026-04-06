@@ -117,7 +117,9 @@ multinma <- function(ipd_network,
     )
   
   
-  
+  # TODO: check TRT interactio model
+  # output for IPD-AGD model
+  # only AGD...
   
 }
 
