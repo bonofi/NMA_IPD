@@ -5,15 +5,15 @@
 
 
 multinma <- function(ipd_network, 
-                     modelformua = as.formula(~(x + V)*.trt),
+                     modelformula = as.formula(~x + V),   # ~(x + V)*.trt
                      datalevel = c("ipd", "agd", "ipd-agd"),
                      model = c("fixed", "random"),
                      n_chains = 4,
-                     n_iter = 2000
+                     n_iter = 2000,
+                     seed = 87632
                      )
   {
   
-  browser()
   datalevel <- match.arg(datalevel)
   model <- match.arg(model)
   
@@ -24,7 +24,8 @@ multinma <- function(ipd_network,
               study = study, 
               trt = trt_name, 
               y = y,
-              trt_ref = "A")
+              trt_ref = "A"
+              )
     )
     
   png("./output/network.png")
@@ -37,23 +38,24 @@ multinma <- function(ipd_network,
   dev.off()
   
   
+  # 
+  # pso_net <- combine_network(
+  #   set_ipd(pso_ipd, 
+  #           study = studyc, 
+  #           trt = trtc, 
+  #           r = pasi75,
+  #           trt_class = trtclass),
+  #   set_agd_arm(pso_agd, 
+  #               study = studyc, 
+  #               trt = trtc, 
+  #               r = pasi75_r, 
+  #               n = pasi75_n,
+  #               trt_class = trtclass)
+  # )
+  # 
   
-  pso_net <- combine_network(
-    set_ipd(pso_ipd, 
-            study = studyc, 
-            trt = trtc, 
-            r = pasi75,
-            trt_class = trtclass),
-    set_agd_arm(pso_agd, 
-                study = studyc, 
-                trt = trtc, 
-                r = pasi75_r, 
-                n = pasi75_n,
-                trt_class = trtclass)
-  )
   
-  
-  
+  set.seed(seed)
   
   nma <- nma(pso_net, 
              trt_effects = model,
@@ -65,8 +67,10 @@ multinma <- function(ipd_network,
              )
   
   
+  browser()
   
-  summary(nma)
+  multinma:::relative_effects(nma, all_contrasts = TRUE)
+  
   
 }
 
