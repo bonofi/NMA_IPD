@@ -278,6 +278,10 @@ res1bal <- lapply(
   )
 
 
+allres1 <- res1 |> 
+  dplyr::bind_rows(
+    res1bal
+  )
 
 #############################################################
 # ATT estimand: effect in reference trial Nr 1
