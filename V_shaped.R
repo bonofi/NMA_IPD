@@ -198,7 +198,7 @@ prova <- res1dat |>
   )
 
 # raw balanced data: IPD available
-# 
+# TODO: only balance for mild inconsistency as proof of concept ...
 system.time(
   
 rawbal1 <- split(res1dat, res1dat$inconsistency) |> 
@@ -239,6 +239,31 @@ names(rawbal1) <- names(inconsistency)
 for (i in names(inconsistency))
   names(rawbal1[[i]]) <- names(ssizes) 
 
+
+
+### extract contrasts after balancing
+
+res1bal <- lapply(
+  names(inconsistency),
+  function(i) lapply(
+    names(ssizes), 
+    function(j)
+      
+      rawbal1[[i]][[j]]$est |> 
+      tibble::as_tibble() |> 
+      tibble::add_column(
+        inconsistency = i,
+        samplesize = j
+      )
+  )
+) |> 
+  dplyr::bind_rows() |> 
+  dplyr::mutate(
+    samplesize = factor(samplesize, 
+                        levels = c("small", "medium", "large")),
+    inconsistency = factor(inconsistency,
+                           levels = c("none", "mild", "high"))
+  )
 
 
 
