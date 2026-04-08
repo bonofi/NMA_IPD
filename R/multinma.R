@@ -137,11 +137,13 @@ multinma <- function(ipd_network,
 
 # 
 # 
-# multinma(
-#   res1dat |> 
-#     filter(
-#       inconsistency == "high",
-#       samplesize == "small"
-#     ),
-#   modelformula = as.formula(~x + V:.trt)
-# )
+prova <- multinma(
+  res1dat |>
+    filter(
+      inconsistency == "high",
+      samplesize == "small"
+    ),
+  modelformula = as.formula(~x + V) #as.formula(~x + V:.trt)
+)
+
+multinma:::predict.stan_nma(prova$mlnmr, baseline = "1", newdata = data.frame(x = 60, V = rep(c("level1", "level2"), c(100,100))))
