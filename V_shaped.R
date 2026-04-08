@@ -198,7 +198,7 @@ prova <- res1dat |>
   )
 
 # raw balanced data: IPD available
-# TODO: only balance for mild inconsistency as proof of concept ...
+# TODO: only balance for mild inconsistency as proof of concept ...?
 system.time(
   
 rawbal1 <- split(res1dat, res1dat$inconsistency) |> 
@@ -248,8 +248,20 @@ res1bal <- lapply(
   function(i) lapply(
     names(ssizes), 
     function(j)
-      
-      rawbal1[[i]][[j]]$est |> 
+      # use this code
+      # lapply(
+      #   c("2sNMA", "IPW", "ML-NMR"),
+      #   function(x)
+      #     rawbal1[[i]][[j]][[x]]$est
+      # ) |> 
+      # dplyr::bind_rows()
+      rawbal1[[i]][[j]]$`2sNMA`$table |>
+      bind_rows(
+        rawbal1[[i]][[j]]$IPW$est
+      ) |> 
+      bind_rows(
+        rawbal1[[i]][[j]]$`ML-NMR`$est
+      ) |> 
       tibble::as_tibble() |> 
       tibble::add_column(
         inconsistency = i,
