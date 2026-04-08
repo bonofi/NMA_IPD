@@ -96,7 +96,8 @@ run_two_stage_nma <- function(
         tibble::add_column(
         evidence = "2-stage adjusted NMA", #adjusting for moderator variable
         estimand = "ATE",
-        level = "IPD"
+        level = "IPD",
+        evidence2 = "Balanced"
       )
     )
   )

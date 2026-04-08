@@ -142,10 +142,7 @@ res1 |>
 ## approach 2: re-balance studies using IPW methods (ATE and ATT)
 ## approach 3: run multi-level MNA 
 
-# ---> assuming IPD is unavailable
-## approach 1: in a two-stage NMA, adjust for other known factor, V.
-## approach 2: run multi-level MNA using summary data (except one study; only ATT)
-## approach 3: GCIPDR and IPW pseudodata
+
 
 # EXTRACT NETWORK DATA
 
@@ -197,15 +194,21 @@ prova <- res1dat |>
   )
 
 #############################################################
-# ATT estimand: effect in reference tiral Nr 1
+# ATT estimand: effect in reference trial Nr 1
 #############################################################
   
+
+
+
+
 
 ########################################################################
 # ---> assuming IPD is NOT available for all studies except study Nr 1
 # ######################################################################
 
-
+## approach 1: in a two-stage NMA, adjust for other known factor, V.
+## approach 2: run multi-level MNA using summary data (except one study; only ATT)
+## approach 3: GCIPDR and IPW pseudodata
 
 
 

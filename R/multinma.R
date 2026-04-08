@@ -32,8 +32,11 @@ multinma <- function(ipd_network,
   else if (
     datalevel == "ipd-agd"
   ) {
+    # put all studies except study 1 in summary arm-level format
+    # combine AGD and IPD
     
-  }
+  } else if (datalevel == "agd")
+    
     
   png("./output/network.png")
   multinma:::plot.nma_data(
@@ -74,7 +77,7 @@ multinma <- function(ipd_network,
              )
   
   
-  browser()
+  #browser()
   
   multinma:::relative_effects(nma, all_contrasts = TRUE)$summary |> 
     dplyr::rowwise() |> 
@@ -105,7 +108,8 @@ multinma <- function(ipd_network,
         datalevel %in% c("ipd", "agd"), "ATE", 
         ifelse(datalevel == "ipd-agd", "ATT", NA)
       ),
-      level = toupper(datalevel) 
+      level = toupper(datalevel),
+      evidence2 = "Balanced" 
     ) |> 
     dplyr::rename(
       SE = sd
@@ -113,11 +117,11 @@ multinma <- function(ipd_network,
     dplyr::select(
       contrast, estimate, SE, df, stat, p.value,
       lower.CL, upper.CL, model, evidence, estimand,
-      level
+      level, evidence2
     )
   
   
-  # TODO: check TRT interactio model
+  # TODO: 
   # output for IPD-AGD model
   # only AGD...
   
@@ -132,5 +136,6 @@ multinma(
     filter(
       inconsistency == "high",
       samplesize == "small"
-    )
+    ),
+  modelformula = as.formula(~x + V:.trt)
 )
