@@ -283,6 +283,42 @@ allres1 <- res1 |>
     res1bal
   )
 
+#### plot
+
+
+allres1 |> 
+  dplyr::rename(Method = evidence) |> 
+  dplyr::filter(evidence2 == "Balanced") |> 
+  ggplot(
+    aes(x = samplesize, y = estimate, 
+        colour = contrast, group = contrast, shape = Method) 
+  ) +
+  geom_line(
+    data = allres1 |> 
+      dplyr::rename(Method = evidence) |>
+      dplyr::filter(Method == "IPW")
+  ) +
+  geom_point(size = 2) +
+  facet_wrap(vars(inconsistency)) +
+  geom_hline(yintercept = 10, colour  ="red3", linetype = 2, alpha = 0.5) + 
+  geom_hline(yintercept = 5, colour  ="green3", linetype = 2, alpha = 0.5)  +
+  geom_hline(yintercept = -5, colour  ="skyblue4", linetype = 2, alpha = 0.5) +
+  geom_point(
+    data = res1 |> 
+      dplyr::filter(evidence == "IMT" & inconsistency == "none"),
+    aes(x = samplesize, y = estimate), shape = 5, size = 4
+  ) +
+  ggplot2::labs(
+    x = "Sample size", 
+    title = "ATE estimation in a V-shaped treatment network for increasing inconsistency levels (Nr of studies: 5) after balancing: IPD available", 
+    caption = paste0(
+      "Diamonds: IMT for large N; Dots: NMA (", 
+      unique(na.omit(res1$model)),")"
+    )
+  ) 
+
+# INTERPRETATION: ATE is an average across trials that do not necessarily coincide with true population average iff trial average do not coincide with population average
+
 #############################################################
 # ATT estimand: effect in reference trial Nr 1
 #############################################################
