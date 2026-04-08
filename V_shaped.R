@@ -199,6 +199,7 @@ prova <- res1dat |>
 
 # raw balanced data: IPD available
 # 
+system.time(
 rawbal1 <- split(res1dat, res1dat$inconsistency) |> 
   purrr::map(
     \(df1) split(df1, df1$samplesize) |> 
@@ -234,6 +235,7 @@ rawbal1 <- split(res1dat, res1dat$inconsistency) |>
 for (i in names(inconsistency))
   names(rawbal1[[i]]) <- names(ssizes) 
 
+)
 
 
 #############################################################
