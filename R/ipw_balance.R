@@ -23,8 +23,12 @@ ipw_balance <- function(ipd_network,
     data = ipd_network |> 
       as.data.frame(),
     estimand = estimand,
-    treatATT = ifelse(estimand == "ATE", 
-                      NULL, ref_study),
+    treatATT = { 
+      if(estimand == "ATT")
+        ref_study
+      else
+        NULL
+    },
     verbose = FALSE,
     stop.method = stop_rule,
     n.trees = n_trees)
@@ -168,7 +172,7 @@ ipw_balance <- function(ipd_network,
 
 # 
 # prova <- ipw_balance(
-#   res1dat |> 
+#   res1dat |>
 #     filter(
 #       inconsistency == "high",
 #       samplesize == "small"
