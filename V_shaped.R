@@ -4,6 +4,8 @@ source("./R/dependencies.R")
 source("./R/trial_simul2.R")
 source("./R/network_simul.R")
 source("./R/run_two_stage_nma.R")
+source("./R/ipw_balance.R")
+source("./R/multinma.R")
 
 # GENERAL SETTINGS
 ##### IMT ####
@@ -195,12 +197,37 @@ prova <- res1dat |>
     study_level_model_formula = formula(y~trt_name + x + V)
   )
 
-
-split(res1dat, res1dat$inconsistency) |> 
+# raw balanced data: IPD available
+# 
+rawbal1 <- split(res1dat, res1dat$inconsistency) |> 
   purrr::map(
     \(df1) split(df1, df1$samplesize) |> 
-      purrr::map()
-  )
+      purrr::map(
+        \(df2)
+          
+          list(
+            "2sNMA" = run_two_stage_nma(
+              ipd_network = df2,
+              study_level_model_formula = formula(y~trt_name + x + V)
+            ),
+            "IPW" = ipw_balance(
+              ipd_network = df2,
+              model_formula = as.formula(study ~ x + V1 + V2),
+              estimand = "ATE",
+              stop_rule = "es.mean"
+            ),
+            "ML-NMR" = multinma(
+              ipd_network = df2,
+              modelformula = as.formula(~x + V),
+              datalevel = "ipd"
+            )
+          )
+          
+      )
+  ); names(rawbal1) <- names(inconsistency)
+for (i in names(inconsistency))
+  names(rawbal1[[i]]) <- names(ssizes) 
+
 
 
 #############################################################
