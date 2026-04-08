@@ -149,7 +149,7 @@ ipw_balance <- function(ipd_network,
   
   return(
     list(
-      rewres = res,
+      rawres = res,
       weighted_mod = mod,
       ps_weights = data,
       est = modcontr |> 
@@ -166,11 +166,11 @@ ipw_balance <- function(ipd_network,
 
 
 
-
-prova <- ipw_balance(
-  res1dat |> 
-    filter(
-      inconsistency == "high",
-      samplesize == "small"
-    )
-)
+# 
+# prova <- ipw_balance(
+#   res1dat |> 
+#     filter(
+#       inconsistency == "high",
+#       samplesize == "small"
+#     )
+# )

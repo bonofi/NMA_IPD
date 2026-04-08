@@ -79,7 +79,7 @@ multinma <- function(ipd_network,
   
   #browser()
   
-  multinma:::relative_effects(nma, all_contrasts = TRUE)$summary |> 
+  modcontr <- multinma:::relative_effects(nma, all_contrasts = TRUE)$summary |> 
     dplyr::rowwise() |> 
     dplyr::mutate(
       contrast = ifelse(reverse_effects,
@@ -121,6 +121,12 @@ multinma <- function(ipd_network,
     )
   
   
+  return(
+    list(
+      mlnmr = nma,
+      est = modcontr
+    )
+  )
   # TODO: 
   # output for IPD-AGD model
   # only AGD...
@@ -129,13 +135,13 @@ multinma <- function(ipd_network,
 
 
 
-
-
-multinma(
-  res1dat |> 
-    filter(
-      inconsistency == "high",
-      samplesize == "small"
-    ),
-  modelformula = as.formula(~x + V:.trt)
-)
+# 
+# 
+# multinma(
+#   res1dat |> 
+#     filter(
+#       inconsistency == "high",
+#       samplesize == "small"
+#     ),
+#   modelformula = as.formula(~x + V:.trt)
+# )

@@ -132,16 +132,6 @@ res1 |>
 #########################################################################################################
 #########################################################################################################
 
-###################################### 
-# ####### BALANCE populations ########
-# #######################################
-# ---> assuming IPD is available
-# #######################################
-
-## approach 1: in a two-stage NMA, adjust for other known factor, V (only ATE).
-## approach 2: re-balance studies using IPW methods (ATE and ATT)
-## approach 3: run multi-level MNA 
-
 
 
 # EXTRACT NETWORK DATA
@@ -180,6 +170,18 @@ summary(
      data = rawres1$mild$large$data$imt)
 )
 
+
+
+###################################### 
+# ####### BALANCE populations ########
+# #######################################
+# ---> assuming IPD is available
+# #######################################
+
+## approach 1: in a two-stage NMA, adjust for other known factor, V (only ATE).
+## approach 2: re-balance studies using IPW methods (ATE and ATT)
+## approach 3: run ML-NMR 
+
 ############################################################
 # ATE estimand: average effect across trials
 ############################################################
@@ -192,6 +194,14 @@ prova <- res1dat |>
   run_two_stage_nma(
     study_level_model_formula = formula(y~trt_name + x + V)
   )
+
+
+split(res1dat, res1dat$inconsistency) |> 
+  purrr::map(
+    \(df1) split(df1, df1$samplesize) |> 
+      purrr::map()
+  )
+
 
 #############################################################
 # ATT estimand: effect in reference trial Nr 1
