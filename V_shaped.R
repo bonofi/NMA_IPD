@@ -203,7 +203,11 @@ rawbal1 <- split(res1dat, res1dat$inconsistency) |>
   purrr::map(
     \(df1) split(df1, df1$samplesize) |> 
       purrr::map(
-        \(df2)
+        \(df2){
+          
+          print("inconsistency ", 
+                unique(df2$inconsistency), 
+                "; sample size ", unique(df2$samplesize)  )
           
           list(
             "2sNMA" = run_two_stage_nma(
@@ -222,6 +226,8 @@ rawbal1 <- split(res1dat, res1dat$inconsistency) |>
               datalevel = "ipd"
             )
           )
+        }
+          
           
       )
   ); names(rawbal1) <- names(inconsistency)
