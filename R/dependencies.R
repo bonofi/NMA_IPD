@@ -16,8 +16,8 @@ library(multinma)
 library(twang)
 #library(optweight)
 
-library(devtools)
-library(remotes)
+#library(devtools)
+#library(remotes)
 
 #devtools::install_github("bonorico/gcipdr")
 #pak::pak("bonorico/gcipdr")
