@@ -188,14 +188,6 @@ summary(
 # ATE estimand: average effect across trials
 ############################################################
 
-prova <- res1dat |> 
-  filter(
-    inconsistency == "high",
-    samplesize == "small"
-  ) |> 
-  run_two_stage_nma(
-    study_level_model_formula = formula(y~trt_name + x + V)
-  )
 
 # raw balanced data: IPD available
 # TODO: only balance for mild inconsistency as proof of concept ...?
