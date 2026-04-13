@@ -88,7 +88,8 @@ multinma <- function(ipd_network,
       
     )
     
-    # integrate over distribution of reference study
+    # integrate over distribution of reference study: this will not work with more strata: 
+    # consider to give command manually as argument
     pso_net <- add_integration(
       pso_net,
       X= distr(qgamma, mean = X_mean, sd = X_sd),
