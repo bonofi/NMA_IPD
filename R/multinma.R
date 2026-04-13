@@ -209,83 +209,21 @@ multinma <- function(ipd_network,
       est = modcontr
     )
   )
-  # TODO: 
-  # output for IPD-AGD model
-  # only AGD...
   
 }
 
 
 
 # 
-# 
-prova <- multinma(
-  res1dat |>
-    filter(
-      inconsistency == "high",
-      samplesize == "large"
-    ) |> 
-    rename(X = x),
-  modelformula = as.formula(~X + V2) #as.formula(~x + V:.trt)
-)
-
-
-
-multinma:::marginal_effects(
-  prova$mlnmr, 
-  baseline = "1", 
-  newdata = data.frame(x = 60, V = rep(c("level1", "level2"), c(100,100))))
-
-
-multinma:::predict.stan_nma(
-  prova$mlnmr, 
-  baseline = "1", 
-  newdata = res1dat |> 
-    filter(study == "1",
-           inconsistency == "none",
-           samplesize == "large"
-    ) |>
-    select(x, V),
-  level = "individual"
-)
-
-
-ref1 <- res1dat |> 
-  filter(study == "1",
-         inconsistency == "none",
-         samplesize == "large"
-  ) |>
-  rename(X = x) |> 
-  select(X, V1) |> 
-  summarise(
-    x_mean = mean(X),
-    x_sd = sd(X),
-    V1_mean = mean(V1) 
-  ) |> as.data.frame()
-
-corref <- res1dat |> 
-  filter(study == "1",
-         inconsistency == "none",
-         samplesize == "large"
-  ) |> rename(X = x) |> 
-  select(X, V1) |> cor(method = "spearman")
-
-
-ref1b <- add_integration(
-  ref1,
-  X= distr(qgamma, mean = x_mean, sd = x_sd),
-  V1 = distr(qbern, prob = V1_mean),
-  cor = corref,
-  cor_adjust = "spearman",
-  n_int = 1000
-)
-
-multinma::marginal_effects(prova$mlnmr,
-                           baseline = "1",
-                           newdata = ref1b)
-
-
-####  ATT analysis with ML-NMR (all IPD available)
+# # 
+# prova <- multinma(
+#   res1dat |>
+#     filter(
+#       inconsistency == "high",
+#       samplesize == "small"
+#     ),
+#   modelformula = as.formula(~x + V2) #as.formula(~x + V:.trt)
+# )
 
 
 
