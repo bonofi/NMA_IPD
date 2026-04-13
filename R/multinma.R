@@ -7,37 +7,48 @@
 multinma <- function(ipd_network, 
                      modelformula = as.formula(~x + V),   # ~(x + V)*.trt
                      datalevel = c("ipd", "agd", "ipd-agd"),
-                     estimand = c("ATE", "ATT"),
                      model = c("fixed", "random"),
                      reverse_effects = TRUE,   # 
                      n_chains = 4,
                      n_iter = 2000,
                      seed = 87632
-                     )
-  {
+)
+{
   
   datalevel <- match.arg(datalevel)
   model <- match.arg(model)
   estimand <- match.arg(estimand)
+
+  # must change name of prognostic variable due to bugs
   
-  browser()
+  ipd_network <- ipd_network |> 
+    dplyr::rename(X = x)
+  
+  replform <- modelformula[2] |> as.character() |> 
+    stringr::str_replace("x", "X")
+  
+  modelformula <- paste0("~", replform)
   
   ### prepare AGD in case needed
   
   agd_network <- ipd_network |> 
+    dplyr::select(study, trt_name, y, X, 
+                  starts_with("V")) |> 
     dplyr::group_by(study, trt_name) |> 
-    dplyr::summarise(
-      y_mean = mean(y, na.rm = TRUE),
-      y_sd = sd(y, na.rm = TRUE),
-      x_mean = mean(X, na.rm = TRUE),
-      x_sd = sd(X, na.rm = TRUE),
-      V2_mean = mean(V2, na.rm = TRUE),
-      n = n()
+    dplyr::summarise_if(
+      is.numeric,
+      list(mean=mean, sd = sd), na.rm = TRUE
+    )  |> 
+    dplyr::left_join(
+      ipd_network |> 
+        dplyr::group_by(study, trt_name) |> 
+        dplyr::summarise(n = n()),
+      by = c("study", "trt_name")
     ) |> 
     dplyr::ungroup()
   
   
-  if (datalevel == "ipd" & estimand == "ATE")
+  if (datalevel == "ipd")
     
     pso_net <- combine_network(
       set_ipd(ipd_network, 
@@ -45,14 +56,20 @@ multinma <- function(ipd_network,
               trt = trt_name, 
               y = y,
               trt_ref = "A"
-              )
+      )
     )
-  else if (datalevel == "ipd" & estimand == "ATT") # Ref study 1
-  {
+  
+  else if (
+    datalevel == "ipd-agd"
+  ) {
+    # put all studies except study 1 in summary arm-level format
+    # combine AGD and IPD
+    
+    
     pso_net <- combine_network(
       set_ipd(
         ipd_network |> 
-          dplyr::filter(study != "1"),
+          dplyr::filter(study == "1"),
         study = study, 
         trt = trt_name, 
         y = y,
@@ -60,7 +77,7 @@ multinma <- function(ipd_network,
       ),
       set_agd_arm(
         agd_network |> 
-          dplyr::filter(study =="1"),
+          dplyr::filter(study !="1"),
         study = study, 
         trt = trt_name, 
         y = y_mean,
@@ -71,34 +88,58 @@ multinma <- function(ipd_network,
       
     )
     
-    # use correlation matrix of reference study
-    corref <- ipd_network |> 
-      dplyr::filter(study =="1") |> 
-      dplyr::select(X, V2) |> 
-      cor(method = "spearman")
-    
-    # integrate over covariate distribution of reference study
+    # integrate over distribution of reference study
     pso_net <- add_integration(
       pso_net,
-      X= distr(qgamma, mean = x_mean, sd = x_sd),
+      X= distr(qgamma, mean = X_mean, sd = X_sd),
       V2 = distr(qbern, prob = V2_mean),
-      cor = corref,
-      cor_adjust = "spearman",
       n_int = 1000
     )
     
-  }
-  
-  else if (
-    datalevel == "ipd-agd"
-  ) {
-    # put all studies except study 1 in summary arm-level format
-    # combine AGD and IPD
     
   } else if (datalevel == "agd")
     
+    pso_net <- combine_network(
+      set_agd_arm(
+        agd_network,
+        study = study, 
+        trt = trt_name, 
+        y = y_mean,
+        se = y_sd,
+        trt_ref = "A",
+        sample_size = n
+      )
+      
+    )
+  
+  
+  #######  ATT by predicting in new population ???
+  #######  use newpop in newdata in marginal_effects
+  
+  # # use correlation matrix of reference study
+  # corref <- ipd_network |> 
+  #   dplyr::filter(study =="1") |> 
+  #   dplyr::select(X, starts_with("V")) |>
+  #   dplyr::select(where(is.numeric)) |>
+  #   # drop first stratum
+  #   dplyr::select(!any_of("V1")) |>  
+  #   cor(method = "spearman")
+  # 
+  # newpop <- agd_network |> 
+  #   filter(study == "1")
+  # 
+  # newpop <- add_integration(
+  #   newpop,
+  #   X= distr(qgamma, mean = X_mean, sd = X_sd),
+  #   V2 = distr(qbern, prob = V2_mean),
+  #   cor = corref,
+  #   cor_adjust = "spearman",
+  #   n_int = 1000
+  # )
+  # 
+  
     
-  png("./output/network.png")
+    png("./output/network.png")
   multinma:::plot.nma_data(
     pso_net, weight_nodes = TRUE, 
     weight_edges = TRUE, show_trt_class = FALSE) + 
@@ -108,7 +149,7 @@ multinma <- function(ipd_network,
   dev.off()
   
   
-
+  
   
   set.seed(seed)
   
@@ -119,7 +160,7 @@ multinma <- function(ipd_network,
              regression = modelformula,
              iter = n_iter,
              chains = n_chains
-             )
+  )
   
   
   modcontr <- multinma:::relative_effects(nma, all_contrasts = TRUE)$summary |> 
@@ -147,7 +188,7 @@ multinma <- function(ipd_network,
       model = ifelse(model == "fixed", "common effect", 
                      ifelse(model =="random", "random effect", NA)),
       evidence = "ML-NMR",  # multilevel network metaregression
-      estimand = estimand,
+      estimand = "ATE",  # not aware ATT estimand possible in this outcome-regression context
       level = toupper(datalevel),
       evidence2 = "Balanced" 
     ) |> 
@@ -181,10 +222,10 @@ prova <- multinma(
   res1dat |>
     filter(
       inconsistency == "high",
-      samplesize == "small"
+      samplesize == "large"
     ) |> 
     rename(X = x),
-  modelformula = as.formula(~X + V1) #as.formula(~x + V:.trt)
+  modelformula = as.formula(~X + V2) #as.formula(~x + V:.trt)
 )
 
 
@@ -202,10 +243,10 @@ multinma:::predict.stan_nma(
     filter(study == "1",
            inconsistency == "none",
            samplesize == "large"
-           ) |>
+    ) |>
     select(x, V),
   level = "individual"
-    )
+)
 
 
 ref1 <- res1dat |> 
