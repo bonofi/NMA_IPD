@@ -18,7 +18,7 @@ multinma <- function(ipd_network,
   datalevel <- match.arg(datalevel)
   model <- match.arg(model)
   estimand <- match.arg(estimand)
-
+  
   # must change name of prognostic variable due to bugs
   
   ipd_network <- ipd_network |> 
@@ -139,8 +139,8 @@ multinma <- function(ipd_network,
   # )
   # 
   
-    
-    png("./output/network.png")
+  
+  png("./output/network.png")
   multinma:::plot.nma_data(
     pso_net, weight_nodes = TRUE, 
     weight_edges = TRUE, show_trt_class = FALSE) + 
@@ -148,7 +148,6 @@ multinma <- function(ipd_network,
                    legend.box = "vertical") 
   
   dev.off()
-  
   
   
   
