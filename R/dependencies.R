@@ -22,6 +22,7 @@ library(netmeta)
 library(emmeans)
 library(multinma)
 library(twang)
+library(MAICtools)
 #library(optweight)
 
 #library(devtools)
