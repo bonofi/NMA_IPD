@@ -89,9 +89,11 @@ ipw_balance <- function(ipd_network,
       by=c("study", "usubjid")
     )
 
+  #browser()
   
-  # interpret ATE before-after weighting
-  baltable |> 
+  if (estimand == "ATE")
+    # interpret ATE before-after weighting
+    baltable |> 
     filter(var == "V2") |> 
     select(tmt1, mean1, stop.method) |> 
     bind_rows(
@@ -131,6 +133,7 @@ ipw_balance <- function(ipd_network,
     ) |> 
     group_by(stop.method, trt_name) |> 
     summarise(ATE = weighted.mean(weight_eff, n))
+  
   
   ####  RUN IPWed MODEL ##############
   # weighted model for average effect
