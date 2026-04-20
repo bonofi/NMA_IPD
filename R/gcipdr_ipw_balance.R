@@ -4,7 +4,7 @@
 #' 
 
 
-gcipdr_ipw_balance(
+gcipdr_ipw_balance <- function(
   ipd_network,
   modelformula = as.formula(~x + V),   # ~(x + V)*.trt
   datalevel = c("ipd-agd", "agd"),
@@ -22,42 +22,35 @@ gcipdr_ipw_balance(
 #' simulate pseudodata
 
 do_gcipdr <- function(
-    ipd_network
+    ipd_network,
+    boot_iter = 100,
+    seed = 49632
     )
 {
   
-  
+  browser()
   
   # generate pseudodata
 
-  hubs <- levels(ist$COUNTRY)
+  set.seed(seed, "L'Ecuyer") # delete this line to assess stability
   
-  
-  ######### LOAD COPULA DATA ##########
-  
-  
-  seed <- 49632
-  
-  #
-  istsimul.by.region <- lapply( 3:4, function(i)
-    lapply(hubs, function(j){  
+  print( 
+    system.time(
       
-      data <- ist[ist$COUNTRY == j, -9]
-      
-      jiseed <- as.integer(paste(which(hubs == j), seed, i, sep = ""))
-      set.seed( jiseed, "L'Ecuyer") # delete this line to assess stability
-      print( system.time(
-        artificial_data_object <-  Simulate.many.datasets(list(data), H = NULL, i,
-                                                          checkdata = TRUE, tabulate.similar.data = TRUE, NI_maxEval = 0 )
-      ))
-      return( artificial_data_object[[1]])
-    }  )         ); names(istsimul.by.region) <- paste0("meth_", 3:4)
-  
-  
-  for(i in 1:2) names(istsimul.by.region[[i]]) <- hubs
-  
-  
-  
+      out <-  Simulate.many.datasets(
+        split(ipd_network,
+              unique(ipd_network$study)), 
+        H = boot_iter, 
+        method = 3,
+        checkdata = TRUE, 
+        tabulate.similar.data = TRUE, 
+        NI_maxEval = 0)[[1]]
+    )
+ 
+     )
+  )
+    
+    
   
   # pool pseudodata
   PoolArtifData <-function(istsimul.by.region){
@@ -79,3 +72,8 @@ do_gcipdr <- function(
   }
   
 }
+
+
+
+
+do_gcipdr(res1dat)

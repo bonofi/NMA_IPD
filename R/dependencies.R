@@ -31,8 +31,3 @@ library(remotes)
 pak::pak("bonorico/gcipdr")
 
 library(gcipdr)
-
-# source files manually
-# sapply(
-#   list.files("./gcipdr/R/", 
-#              full.names = TRUE), source)
