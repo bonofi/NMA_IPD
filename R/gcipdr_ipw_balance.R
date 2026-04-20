@@ -30,26 +30,40 @@ do_gcipdr <- function(
   
   browser()
   
+  trt_map <- ipd_network |> 
+    dplyr::distinct(study, trt, trt_name)
+  
+  # prep data
+  
+  input <- lapply(
+    split(ipd_network,
+          unique(ipd_network$study)),
+    function(x)
+      x |> 
+      dpylr::select(
+        y, trt, x, starts_with("v")
+      ) |> 
+      dplyr::select(where(is.numeric))
+  )
+  
   # generate pseudodata
-
+  
   set.seed(seed, "L'Ecuyer") # delete this line to assess stability
   
   print( 
     system.time(
       
       out <-  Simulate.many.datasets(
-        split(ipd_network,
-              unique(ipd_network$study)), 
+        input,
         H = boot_iter, 
-        method = 3,
+        method = 3, # NORTA with Gamma marginals and Pearson corr
         checkdata = TRUE, 
         tabulate.similar.data = TRUE, 
         NI_maxEval = 0)[[1]]
     )
  
      )
-  )
-    
+  
     
   
   # pool pseudodata
