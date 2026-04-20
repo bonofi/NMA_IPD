@@ -373,9 +373,9 @@ for (i in names(inconsistency))
 # ---> assuming IPD is NOT available for all studies except study Nr 1
 # ######################################################################
 
-## approach 1: in a two-stage NMA, adjust for other known factor, V.
-## approach 2: run multi-level MNA using summary data (except one study; only ATT)
-## approach 3: GCIPDR and IPW pseudodata
+## approach 1: in a two-stage NMA, adjust for other known factor, V. SAME as ATE
+## approach 2: run multi-level MNA using summary data (except one study) -> ATE
+## approach 3: GCIPDR and IPW pseudodata -> ATT
 
 
 
