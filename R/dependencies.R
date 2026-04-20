@@ -28,9 +28,9 @@ library(twang)
 library(devtools)
 library(remotes)
 
-#pak::pak("bonorico/gcipdr")
+pak::pak("bonorico/gcipdr")
 
-#library(gcipdr)
+library(gcipdr)
 
 # source files manually
 # sapply(
