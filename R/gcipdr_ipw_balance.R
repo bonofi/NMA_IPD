@@ -68,10 +68,10 @@ do_gcipdr <- function(
     
   # pool pseudodata by study
   
-  lapply(1:boot_iter, function(h)  # bootstrap's realization
+  out <- lapply(1:boot_iter, function(h)  # bootstrap's realization
     
     lapply(
-      unique(ipd_network$study), 
+      names(raw), 
       function(j) ##  row-bind by study
         
         as.data.frame(
