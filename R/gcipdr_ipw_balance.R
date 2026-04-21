@@ -59,7 +59,7 @@ do_gcipdr <- function(
         method = 3, # NORTA with Gamma marginals and Pearson corr
         checkdata = TRUE, 
         tabulate.similar.data = TRUE, 
-        NI_maxEval = 0)[[1]]
+        NI_maxEval = 0)
     )
  
      )
@@ -72,13 +72,22 @@ do_gcipdr <- function(
     
     lapply(
       unique(ipd_network$study), 
-      function(j) ##  rowbind by study
+      function(j) ##  row-bind by study
         
         as.data.frame(
           raw[[j]]$similar.data[[h]]
         ) |> 
         tibble::add_column(
           study = j
+        ) |> 
+        # re-merge trt LABEL by study
+        dplyr::left_join(
+          trt_map |> 
+            dplyr::filter(
+              study == j
+            ),
+          by = c("study", "trt")
+          
         )
     ) |> 
       dplyr::bind_rows()
