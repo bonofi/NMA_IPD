@@ -40,20 +40,20 @@ do_gcipdr <- function(
           unique(ipd_network$study)),
     function(x)
       x |> 
-      dpylr::select(
+      dplyr::select(
         y, trt, x, starts_with("v")
       ) |> 
       dplyr::select(where(is.numeric))
   )
   
-  # generate pseudodata
+  # generate pseudodata. Output: list with boot repetition by study. Need to reorganize as list of pooled-by-study data repetitions  
   
-  set.seed(seed, "L'Ecuyer") # delete this line to assess stability
+  set.seed(seed, "L'Ecuyer") 
   
   print( 
     system.time(
       
-      out <-  Simulate.many.datasets(
+      raw <-  gcipdr::Simulate.many.datasets(
         input,
         H = boot_iter, 
         method = 3, # NORTA with Gamma marginals and Pearson corr
@@ -63,29 +63,33 @@ do_gcipdr <- function(
     )
  
      )
+  names(raw) <- unique(ipd_network$study)
   
     
+  # pool pseudodata by study
   
-  # pool pseudodata
-  PoolArtifData <-function(istsimul.by.region){
+  lapply(1:boot_iter, function(h)  # bootstrap's realization
     
-    out <- lapply(1:2, function(i) lapply(1:100, function(h){
-      
-      merged <- do.call("rbind",
-                        lapply(1:length(hubs), function(j){  ##  bind by country
-                          
-                          data <- as.data.frame(istsimul.by.region[[i]][[j]]$similar.data[[h]])  # matrix simul
-                          data$COUNTRY <- hubs[j]
-                          return(data) 
-                        } )  )
-      
-      return(merged)
-    })    ); names(out) <- paste0("meth_", 3:4)
+    lapply(
+      unique(ipd_network$study), 
+      function(j) ##  rowbind by study
+        
+        as.data.frame(
+          raw[[j]]$similar.data[[h]]
+        ) |> 
+        tibble::add_column(
+          study = j
+        )
+    ) |> 
+      dplyr::bind_rows()
     
-    return(out)
-  }
+    
+  )
   
 }
+  
+  
+
 
 
 
