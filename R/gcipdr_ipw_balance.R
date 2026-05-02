@@ -69,7 +69,7 @@ do_gcipdr <- function(
      )
   names(raw) <- unique(ipd_network$study)
   
-  # check if any GC failed with numericla integration only
+  # check if any GC failed with numerical integration only
   fails <- which(
     unlist(
       lapply(raw, function(x) class(x))
@@ -82,14 +82,14 @@ do_gcipdr <- function(
     for (i in fails)
       print( 
         system.time(
-          raw[[i]] <- gcipdr::Simulate.many.datasets(
+          raw[i] <- gcipdr::Simulate.many.datasets(
             input[i],
             H = boot_iter, 
             method = 3, # NORTA with Gamma marginals and Pearson corr
             checkdata = TRUE, 
             tabulate.similar.data = TRUE,
             stochastic.integration = TRUE,
-            SI_k = 20000
+            SI_k = 8000
 
             )
         )
