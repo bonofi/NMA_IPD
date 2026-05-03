@@ -7,11 +7,15 @@
 gcipdr_ipw_balance <- function(
     ipd_network,
     modelformula = as.formula(~x + V1 + V2),   
-    datalevel = c("ipd-agd", "agd"),
+    datalevel = c("ipd-agd", "agd"), # type of data available: mixed ipd-agd, only agd ...
     estimand = c("ATT", "ATE"),
+    ref_study = "1",   # for ATT estimation
+    stop_rule = "ks.mean",   # can be a vector
+    n_trees = 3000,
     boot_iter = 100,
-    NI_maxEval = 200,
+    NI_maxEval = 0,
     SI_k = 10000,
+    only_SI = FALSE,
     seed = 49632
     
 ){
@@ -19,13 +23,30 @@ gcipdr_ipw_balance <- function(
   datalevel <- match.arg(datalevel)
   estimand <- match.arg(estimand)
   
+  studyid <- pickst <- unique(ipd_network$study)
+  refstudy <- NULL
+  
+  if (datalevel == "ipd-agd")
+  {
+    pickst <- setdiff(studyid, ref_study)
+    refstudy <- ipd_network |> 
+      dplyr::filter(study == ref_study)
+  }
+    
+  
+  #set.seed(seed, "L'Ecuyer")
   pseudodata <- do_gcipdr(
-    ipd_network,
+    ipd_network |> 
+      dplyr::filter(study %in% pickst),
     boot_iter = boot_iter,
     NI_maxEval = NI_maxEval,
     SI_k = SI_k,
+    only_SI = only_SI,
     seed = seed
   )
+  
+  browser()
+  
   
   
   
@@ -40,6 +61,7 @@ do_gcipdr <- function(
     boot_iter = 100,
     NI_maxEval = 200,
     SI_k = 10000,
+    only_SI = FALSE,
     seed = 49632
 )
 {
@@ -76,8 +98,9 @@ do_gcipdr <- function(
         method = 3, # NORTA with Gamma marginals and Pearson corr
         checkdata = TRUE, 
         tabulate.similar.data = TRUE, 
-        stochastic.integration = FALSE,
-        NI_maxEval = NI_maxEval)
+        stochastic.integration = only_SI, # will override NI setup if TRUE
+        NI_maxEval = NI_maxEval,
+        SI_k = SI_k)
     )
     
   )
@@ -159,11 +182,16 @@ do_gcipdr <- function(
   )
   
   
-  return(out)
+  return(
+    list(
+      raw = raw,
+      pseud = out
+    )
+  )
   
   
 }
 
 
 
-#do_gcipdr(res1dat)
+gcipdr_ipw_balance(res1dat)
