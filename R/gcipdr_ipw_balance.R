@@ -137,6 +137,7 @@ do_gcipdr <- function(
                             ),
                           by = c("study", "trt")
                         ) %>%
+                        # must resort to colSums because rowwise is extremely slow !!!
                         dplyr::mutate(
                           # collect all V strata that are not the reference one
                           notV1 = rowSums(
