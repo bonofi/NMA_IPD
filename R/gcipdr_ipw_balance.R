@@ -142,7 +142,6 @@ do_gcipdr <- function(
                           # collect all V strata that are not the reference one
                           notV1 = rowSums(
                             . |> 
-                              # to be able to use rowSums in case of 1-dim V
                               tibble::add_column(
                                 # to be able to use rowSums in case of 1-dim V 
                                 V0 = NA 
