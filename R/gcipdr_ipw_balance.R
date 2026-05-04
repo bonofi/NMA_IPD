@@ -6,7 +6,7 @@
 
 gcipdr_ipw_balance <- function(
     ipd_network,
-    modelformula = as.formula(~x + V1 + V2),   
+    modelformula = as.formula(study ~ x + V1 + V2),   
     datalevel = c("ipd-agd", "agd"), # type of data available: mixed ipd-agd, only agd ...
     estimand = c("ATT", "ATE"),
     ref_study = "1",   # for ATT estimation
@@ -47,7 +47,78 @@ gcipdr_ipw_balance <- function(
   
   browser()
   
+  # run IPW on pseudodata --> raw result
+  rawipw <- pseudodata$pseud |> 
+    purrr::map(
+      \(df) {
+        
+        ipwreg <- try(
+          ipw_balance(
+          df |> 
+            # if datalevel = agd, it will be NULL
+            dplyr::bind_rows(
+              refstudy
+            ),
+          model_formula = modelformula,
+          estimand = estimand,
+          stop_rule = stop_rule,
+          ref_study = ref_study
+        ),
+        silent = TRUE
+        )
+        
+        if (class(ipwreg) == "try-error")
+          return(
+            list(
+              est = data.frame(failed = ipwreg[1])
+            )
+          )
+        else
+          ipwreg
+      } 
+    )
   
+  # extract estimates and stack by boot iteration
+  cleanipw <- 1:length(rawipw) |> 
+    lapply(
+      function(i)
+        rawipw[[i]]$est |> 
+        tibble::add_column(bootIter = i, 
+                           .before = 1)
+        
+        ) |> 
+    dplyr::bind_rows()
+    
+    
+  # calculate summary over boot iteration
+  
+  summipw <- cleanipw |> 
+   dplyr::group_by(
+     bootIter, contrast
+   ) |> 
+    dplyr::summarise(
+      dplyr::across(
+        # here names to be kept, e.g., estimate, lower, upper, etc ..
+        .cols = c("estimate"),
+        .fns = list(
+          Mean = ~ mean(.x, na.rm = TRUE),
+          SD = ~ sd(.x, na.rm = TRUE)
+          # more ?
+          ),
+        .names = "{.col}_{.fn}"  # glue-style template
+      )
+    )
+  # eventually rearrange with pivot to have same format as ipw_balance$est ?
+    
+  
+  
+  return(
+    list(
+      rawres = rawipw,
+      rawest = cleanipw,
+      est = summipw
+    )
+  )
   
   
   
