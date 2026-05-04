@@ -194,4 +194,4 @@ do_gcipdr <- function(
 
 
 
-gcipdr_ipw_balance(res1dat)
+gcipdr_ipw_balance(res1dat |> filter(samplesize == "small" & inconsistency == "high"))
