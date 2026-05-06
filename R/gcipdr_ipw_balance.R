@@ -32,7 +32,7 @@ gcipdr_ipw_balance <- function(
     refstudy <- ipd_network |> 
       dplyr::filter(study == ref_study)
   }
-
+  
   
   
   #set.seed(seed, "L'Ecuyer")
@@ -46,41 +46,62 @@ gcipdr_ipw_balance <- function(
     seed = seed
   )
   
-
-   browser()    
   
+  browser()   
+  
+  cores <- detectCores() - 1
+  
+  #plan(multisession, workers = cores)
+  mirai::daemons(cores)
   # run IPW on pseudodata --> raw result
   rawipw <- pseudodata$pseud |> 
-    purrr::map(      # might have to swap for parLapply to speed up
-      \(df) {
+    #furrr::future_map(      # might have to parallelize to speed up
+    purrr::map(
+      purrr::in_parallel(
         
-        ipwreg <- try(
-          ipw_balance(
-          df |> 
-            # if datalevel = agd, it will be NULL
-            dplyr::bind_rows(
-              refstudy
-            ) |> 
-            dplyr::arrange(study),
-          model_formula = modelformula,
-          estimand = estimand,
-          stop_rule = stop_rule,
-          ref_study = ref_study,
-          n_trees = n_trees
-        ),
-        silent = TRUE
-        )
-        
-        if (class(ipwreg) == "try-error")
-          return(
-            list(
-              est = data.frame(failed = ipwreg[1])
-            )
+        \(df) {
+          
+          ipwreg <- try(
+            ipw_balance(
+              df |> 
+                # if datalevel = agd, it will be NULL
+                dplyr::bind_rows(
+                  refstudy
+                ) |> 
+                dplyr::arrange(study),
+              model_formula = modelformula,
+              estimand = estimand,
+              stop_rule = stop_rule,
+              ref_study = ref_study,
+              n_trees = n_trees
+            ),
+            silent = TRUE
           )
-        else
-          ipwreg
-      } 
+          
+          if (class(ipwreg) == "try-error")
+            return(
+              list(
+                est = data.frame(failed = ipwreg[1])
+              )
+            )
+          else
+            ipwreg
+        },
+        # pass environment objects to in_parallel
+        "%>%" = `%>%`,
+        refstudy = refstudy,
+        ipw_balance = ipw_balance,
+        modelformula = modelformula,
+        estimand = estimand,
+        stop_rule = stop_rule,
+        ref_study = ref_study,
+        n_trees = n_trees
+        ### end passing objects to in_parallel
+      ) # end in_parallel
     )
+  
+  #plan(sequential)
+  mirai::daemons(0)
   
   # extract estimates and stack by boot iteration
   cleanipw <- 1:length(rawipw) |> 
@@ -89,17 +110,17 @@ gcipdr_ipw_balance <- function(
         rawipw[[i]]$est |> 
         tibble::add_column(bootIter = i, 
                            .before = 1)
-        
-        ) |> 
+      
+    ) |> 
     dplyr::bind_rows()
-    
-    
+  
+  
   # calculate summary over boot iteration
   
   summipw <- cleanipw |> 
-   dplyr::group_by(
-     bootIter, contrast
-   ) |> 
+    dplyr::group_by(
+      bootIter, contrast
+    ) |> 
     dplyr::summarise(
       dplyr::across(
         # here names to be kept, e.g., estimate, lower, upper, etc ..
@@ -108,12 +129,12 @@ gcipdr_ipw_balance <- function(
           Mean = ~ mean(.x, na.rm = TRUE),
           SD = ~ sd(.x, na.rm = TRUE)
           # more ?
-          ),
+        ),
         .names = "{.col}_{.fn}"  # glue-style template
       )
     )
   # eventually rearrange with pivot to have same format as ipw_balance$est ?
-    
+  
   
   
   return(
@@ -213,53 +234,54 @@ do_gcipdr <- function(
       )
     
   }
-
+  
   # pool pseudodata by study
   
   out <- lapply(1:boot_iter, 
-                  function(h)  # bootstrap's realization
-                    
-                    lapply(
-                      names(raw), 
-                      function(j) ##  row-bind by study
-                        
-                        as.data.frame(
-                          raw[[j]]$similar.data[[h]]
-                        ) |> 
-                        tibble::add_column(
-                          study = j,
-                          # need usubjid for compatibility with other utilities
-                          usubjid = paste0(
-                            j, "-", 
-                            1:dim(raw[[j]]$similar.data[[h]])[1])
-                        ) |> 
-                        # re-merge trt LABEL by study
-                        dplyr::left_join(
-                          trt_map |> 
-                            dplyr::filter(
-                              study == j
-                            ),
-                          by = c("study", "trt")
-                        ) %>%
-                        # must resort to colSums because rowwise is extremely slow !!!
-                        dplyr::mutate(
-                          # collect all V strata that are not the reference one
-                          notV1 = rowSums(
-                            . |> 
-                              tibble::add_column(
-                                # to be able to use rowSums in case of 1-dim V 
-                                V0 = NA 
-                              ) |> 
-                              dplyr::select(
-                                starts_with("V")),
-                            na.rm = TRUE)) |>
-                        dplyr::mutate(V1 = 1-notV1) |>
-                        # drop notV1
-                        dplyr::select(-notV1)
-                      
-                    ) |> 
-                    dplyr::bind_rows()
+                function(h)  # bootstrap's realization
                   
+                  lapply(
+                    names(raw), 
+                    function(j) ##  row-bind by study
+                      
+                      as.data.frame(
+                        raw[[j]]$similar.data[[h]]
+                      ) |> 
+                      tibble::add_column(
+                        study = j,
+                        # need usubjid for compatibility with other utilities
+                        usubjid = paste0(
+                          j, "-", 
+                          1:dim(raw[[j]]$similar.data[[h]])[1]),
+                        .before = 1
+                      ) |> 
+                      # re-merge trt LABEL by study
+                      dplyr::left_join(
+                        trt_map |> 
+                          dplyr::filter(
+                            study == j
+                          ),
+                        by = c("study", "trt")
+                      ) %>%
+                      # must resort to colSums because rowwise is extremely slow !!!
+                      dplyr::mutate(
+                        # collect all V strata that are not the reference one
+                        notV1 = rowSums(
+                          . |> 
+                            tibble::add_column(
+                              # to be able to use rowSums in case of 1-dim V 
+                              V0 = NA 
+                            ) |> 
+                            dplyr::select(
+                              starts_with("V")),
+                          na.rm = TRUE)) |>
+                      dplyr::mutate(V1 = 1-notV1) |>
+                      # drop notV1
+                      dplyr::select(-notV1)
+                    
+                  ) |> 
+                  dplyr::bind_rows()
+                
   )
   
   
