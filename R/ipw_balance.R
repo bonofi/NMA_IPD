@@ -36,17 +36,45 @@ ipw_balance <- function(ipd_network,
 
   baltable <- twang::bal.table(res)
   
-  n <- length(res$psList)
-  weights <- lapply(1:n,
+  # specify trt level for correctly selecting PS weights
+  trt_lev <- switch(estimand,
+                    "ATE" = 1,
+                    "ATT" = 0
+                    ) 
+  weights <- lapply(names(res$psList), # automatically select appropriate studies
                     function(i)
                       data.frame(
-                        ps = res$psList[[i]]$ps[res$psList[[i]]$treat == 1, 1],
-                        ps_weight = res$psList[[i]]$w[res$psList[[i]]$treat == 1, 1],
+                        ps = res$psList[[i]]$ps[res$psList[[i]]$treat == trt_lev, 1],
+                        ps_weight = res$psList[[i]]$w[res$psList[[i]]$treat == trt_lev, 1],
                         study = i,
-                        usubjid = paste0(i, "-", 1:sum(res$psList[[i]]$treat == 1))
+                        usubjid = paste0(i, "-", 1:sum(res$psList[[i]]$treat == trt_lev))
                       )
   )|> 
-    dplyr::bind_rows() |> 
+    dplyr::bind_rows() %>%
+    {
+      # if ATT, must collate reference study with PS weight = 1 for all patients
+      if (estimand == "ATT")
+        dplyr::bind_rows(
+          .,
+          data.frame(
+            ps = NA,
+            ps_weight = 1,
+            study = ref_study,
+            usubjid = paste0(
+              ref_study,
+              "-",
+              1:(ipd_network |> 
+                   dplyr::filter(
+                     study == ref_study
+                   ) |> 
+                   dplyr::count() |> 
+                   dplyr::pull())
+            )
+          )
+        )
+      else
+        .
+    } %>%
     dplyr::mutate(study = as.factor(study))
   
   # print diagnostics
