@@ -11,9 +11,9 @@ gcipdr_ipw_balance <- function(
     estimand = c("ATT", "ATE"),
     ref_study = "1",   # for ATT estimation
     stop_rule = "ks.mean",   # can be a vector
-    n_trees = 3000,
+    n_trees = 5000,
     boot_iter = 100,
-    NI_maxEval = 0,
+    NI_maxEval = 10000,
     SI_k = 10000,
     only_SI = FALSE,
     seed = 49632
@@ -47,11 +47,11 @@ gcipdr_ipw_balance <- function(
   )
   
 
-  # browser()    
+   browser()    
   
   # run IPW on pseudodata --> raw result
   rawipw <- pseudodata$pseud |> 
-    purrr::map(
+    purrr::map(      # might have to swap for parLapply to speed up
       \(df) {
         
         ipwreg <- try(
@@ -60,11 +60,13 @@ gcipdr_ipw_balance <- function(
             # if datalevel = agd, it will be NULL
             dplyr::bind_rows(
               refstudy
-            ),
+            ) |> 
+            dplyr::arrange(study),
           model_formula = modelformula,
           estimand = estimand,
           stop_rule = stop_rule,
-          ref_study = ref_study
+          ref_study = ref_study,
+          n_trees = n_trees
         ),
         silent = TRUE
         )
@@ -225,7 +227,11 @@ do_gcipdr <- function(
                           raw[[j]]$similar.data[[h]]
                         ) |> 
                         tibble::add_column(
-                          study = j
+                          study = j,
+                          # need usubjid for compatibility with other utilities
+                          usubjid = paste0(
+                            j, "-", 
+                            1:dim(raw[[j]]$similar.data[[h]])[1])
                         ) |> 
                         # re-merge trt LABEL by study
                         dplyr::left_join(
