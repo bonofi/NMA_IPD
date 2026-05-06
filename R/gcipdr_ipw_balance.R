@@ -12,6 +12,7 @@ gcipdr_ipw_balance <- function(
     ref_study = "1",   # for ATT estimation
     stop_rule = "ks.mean",   # can be a vector
     n_trees = 5000,
+    method = 3,    # 3 = continuous Gamma, 4 = continuous Johnson
     boot_iter = 100,
     NI_maxEval = 10000,
     SI_k = 10000,
@@ -40,6 +41,7 @@ gcipdr_ipw_balance <- function(
     ipd_network |> 
       dplyr::filter(study %in% pickst),
     boot_iter = boot_iter,
+    method = method,
     NI_maxEval = NI_maxEval,
     SI_k = SI_k,
     only_SI = only_SI,
@@ -156,6 +158,7 @@ gcipdr_ipw_balance <- function(
 
 do_gcipdr <- function(
     ipd_network,
+    method = c(3,4), # 3 = continuous Gamma, 4 = continuous Johnson
     boot_iter = 100,
     NI_maxEval = 200,
     SI_k = 10000,
@@ -163,6 +166,8 @@ do_gcipdr <- function(
     seed = 49632
 )
 {
+  
+  method <- match.arg(method)
   
   trt_map <- ipd_network |> 
     dplyr::distinct(study, trt, trt_name)
@@ -195,7 +200,7 @@ do_gcipdr <- function(
       raw <-  gcipdr::Simulate.many.datasets(
         input,
         H = boot_iter, 
-        method = 3, # NORTA with Gamma marginals and Pearson corr
+        method = method, 
         checkdata = TRUE, 
         tabulate.similar.data = TRUE, 
         stochastic.integration = only_SI, # will override NI setup if TRUE
@@ -224,7 +229,7 @@ do_gcipdr <- function(
           raw[i] <- gcipdr::Simulate.many.datasets(
             input[i],
             H = boot_iter, 
-            method = 3, # NORTA with Gamma marginals and Pearson corr
+            method = method, 
             checkdata = TRUE, 
             tabulate.similar.data = TRUE,
             stochastic.integration = TRUE,
