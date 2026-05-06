@@ -32,7 +32,8 @@ gcipdr_ipw_balance <- function(
     refstudy <- ipd_network |> 
       dplyr::filter(study == ref_study)
   }
-    
+
+  
   
   #set.seed(seed, "L'Ecuyer")
   pseudodata <- do_gcipdr(
@@ -45,7 +46,8 @@ gcipdr_ipw_balance <- function(
     seed = seed
   )
   
-  browser()
+
+  # browser()    
   
   # run IPW on pseudodata --> raw result
   rawipw <- pseudodata$pseud |> 
@@ -157,6 +159,8 @@ do_gcipdr <- function(
   )
   
   # generate pseudodata. Output: list with boot repetition by study. Need to reorganize as list of pooled-by-study data repetitions  
+  
+  #browser()    
   
   set.seed(seed, "L'Ecuyer") 
   
