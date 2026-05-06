@@ -118,13 +118,14 @@ gcipdr_ipw_balance <- function(
   # calculate summary over boot iteration
   
   summipw <- cleanipw |> 
+    dplyr::select(-bootIter) |> 
     dplyr::group_by(
-      bootIter, contrast
+      contrast
     ) |> 
     dplyr::summarise(
       dplyr::across(
         # here names to be kept, e.g., estimate, lower, upper, etc ..
-        .cols = c("estimate"),
+        .cols = dplyr::where(is.numeric),
         .fns = list(
           Mean = ~ mean(.x, na.rm = TRUE),
           SD = ~ sd(.x, na.rm = TRUE)
@@ -132,7 +133,8 @@ gcipdr_ipw_balance <- function(
         ),
         .names = "{.col}_{.fn}"  # glue-style template
       )
-    )
+    ) |> 
+    dplyr::ungroup()
   # eventually rearrange with pivot to have same format as ipw_balance$est ?
   
   
