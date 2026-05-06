@@ -89,10 +89,10 @@ ipw_balance <- function(ipd_network,
   
   plot(res)
   plot(res, plots = 2)
-  ggplot(weights,
-         aes(study, ps)) + 
-    geom_boxplot() + 
-    labs(title = "Propensity scores")
+  ggplot2::ggplot(weights,
+                  ggplot2::aes(study, ps)) + 
+    ggplot2::geom_boxplot() + 
+    ggplot2::labs(title = "Propensity scores")
   plot(res, plots = 3)
   plot(res, plots = 4)
   plot(res, plots = 5)
@@ -122,32 +122,32 @@ ipw_balance <- function(ipd_network,
   if (estimand == "ATE")
     # interpret ATE before-after weighting
     baltable |> 
-    filter(var == "V2") |> 
-    select(tmt1, mean1, stop.method) |> 
-    bind_rows(
+    dplyr::filter(var == "V2") |> 
+    dplyr::select(tmt1, mean1, stop.method) |> 
+    dplyr::bind_rows(
       baltable |> 
-        filter(var == "V2") |> 
-        select(tmt2, mean2, stop.method) |>
-        rename(tmt1 = tmt2, mean1 = mean2)
-    ) |> distinct() |> 
-    rename(
+        dplyr::filter(var == "V2") |> 
+        dplyr::select(tmt2, mean2, stop.method) |>
+        dplyr::rename(tmt1 = tmt2, mean1 = mean2)
+    ) |> dplyr::distinct() |> 
+    dplyr::rename(
       study = tmt1,
       mean_V2 = mean1
     ) |> 
-    mutate(
+    dplyr::mutate(
       mean_V1 = 1 - mean_V2,
       .after = mean_V2
     ) |> 
-    arrange(desc(stop.method)) |> 
-    left_join(
+    dplyr::arrange(desc(stop.method)) |> 
+    dplyr::left_join(
       data |> 
-        distinct(study, trt_name) |> 
-        filter(trt_name != "A"),
+        dplyr::distinct(study, trt_name) |> 
+        dplyr::filter(trt_name != "A"),
       by = "study"
     ) |> 
-    rowwise() |> 
-    mutate(
-      weight_eff = case_when(
+    dplyr::rowwise() |> 
+    dplyr::mutate(
+      weight_eff = dplyr::case_when(
         trt_name == "B" ~ weighted.mean(
           c(-20,0), c(mean_V2, mean_V1)),
         trt_name == "C" ~ weighted.mean(
@@ -155,12 +155,12 @@ ipw_balance <- function(ipd_network,
         TRUE ~ NA_real_
       )
     ) |> 
-    left_join(
-      data |> count(study),
+    dplyr::left_join(
+      data |> dplyr::count(study),
       by = "study"
     ) |> 
-    group_by(stop.method, trt_name) |> 
-    summarise(ATE = weighted.mean(weight_eff, n))
+    dplyr::group_by(stop.method, trt_name) |> 
+    dplyr::summarise(ATE = weighted.mean(weight_eff, n))
   
   
   ####  RUN IPWed MODEL ##############
