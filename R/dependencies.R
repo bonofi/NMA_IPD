@@ -31,3 +31,7 @@ library(remotes)
 pak::pak("bonorico/gcipdr")
 
 library(gcipdr)
+
+#library(furrr)
+library(mirai)
+library(carrier)
