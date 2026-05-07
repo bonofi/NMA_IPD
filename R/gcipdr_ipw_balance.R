@@ -51,7 +51,7 @@ gcipdr_ipw_balance <- function(
   )
   
   
-  browser()   
+  #browser()   
   
   cores <- detectCores() - 1
   
@@ -196,26 +196,39 @@ do_gcipdr <- function(
   
   # generate pseudodata. Output: list with boot repetition by study. Need to reorganize as list of pooled-by-study data repetitions  
   
-  #browser()    
+  browser()    
+  
+  
+  cores <- detectCores() - 1
   
   set.seed(seed, "L'Ecuyer") 
   
-  print( 
-    system.time(
-      
-      raw <-  gcipdr::Simulate.many.datasets(
-        input,
-        H = boot_iter, 
-        method = method, 
-        checkdata = TRUE, 
-        tabulate.similar.data = TRUE, 
-        stochastic.integration = only_SI, # will override NI setup if TRUE
-        NI_maxEval = NI_maxEval,
-        SI_k = SI_k)
+  future::plan(multisession, workers = cores)
+  
+  tictoc::tic()
+  raw <- input |> 
+    furrr::future_map(
+
+        \(df) gcipdr::Simulate.many.datasets(
+          list(df),
+          H = boot_iter, 
+          method = method, 
+          checkdata = TRUE, 
+          tabulate.similar.data = TRUE, 
+          stochastic.integration = only_SI, # will override NI setup if TRUE
+          NI_maxEval = NI_maxEval,
+          SI_k = SI_k
+        )[[1]],
+        .options = furrr_options(
+          seed = TRUE,
+          globals = c("mclapply", "skewness", 
+                      "adaptIntegrate"))
     )
-    
-  )
-  names(raw) <- unique(ipd_network$study)
+  
+  tictoc::toc()
+  
+  future::plan(sequential)
+  
   
   # check if any GC failed with numerical integration only
   fails <- which(
@@ -230,19 +243,16 @@ do_gcipdr <- function(
     set.seed(seed, "L'Ecuyer") 
     
     for (i in fails)
-      print( 
-        system.time(
-          raw[i] <- gcipdr::Simulate.many.datasets(
-            input[i],
-            H = boot_iter, 
-            method = method, 
-            checkdata = TRUE, 
-            tabulate.similar.data = TRUE,
-            stochastic.integration = TRUE,
-            SI_k = SI_k
-            
-          )
-        )
+      
+      
+      raw[i] <- gcipdr::Simulate.many.datasets(
+        input[i],
+        H = boot_iter, 
+        method = method, 
+        checkdata = TRUE, 
+        tabulate.similar.data = TRUE,
+        stochastic.integration = TRUE,
+        SI_k = SI_k
         
       )
     
