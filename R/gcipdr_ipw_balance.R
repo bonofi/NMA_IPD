@@ -12,7 +12,7 @@ gcipdr_ipw_balance <- function(
     ref_study = "1",   # for ATT estimation
     stop_rule = "ks.mean",   # can be a vector
     n_trees = 5000,
-    method = 3,    # 3 = continuous Gamma, 4 = continuous Johnson
+    method = c("3","4"),    # 3 = continuous Gamma, 4 = continuous Johnson
     boot_iter = 100,
     NI_maxEval = 10000,
     SI_k = 10000,
@@ -23,6 +23,8 @@ gcipdr_ipw_balance <- function(
   
   datalevel <- match.arg(datalevel)
   estimand <- match.arg(estimand)
+  method <- match.arg(method)
+  
   
   studyid <- pickst <- unique(ipd_network$study)
   refstudy <- NULL
@@ -53,11 +55,13 @@ gcipdr_ipw_balance <- function(
   
   cores <- detectCores() - 1
   
-  #plan(multisession, workers = cores)
+  #future::plan(multisession, workers = cores)
   mirai::daemons(cores)
+  
   # run IPW on pseudodata --> raw result
+  tictoc::tic()
   rawipw <- pseudodata$pseud |> 
-    #furrr::future_map(      # might have to parallelize to speed up
+    #    furrr::future_map(      # Error: must change "future.globals.maxSize" options
     purrr::map(
       purrr::in_parallel(
         
@@ -88,9 +92,9 @@ gcipdr_ipw_balance <- function(
             )
           else
             ipwreg
-        },
+        }
         # pass environment objects to in_parallel
-        "%>%" = `%>%`,
+        , "%>%" = `%>%`,
         refstudy = refstudy,
         ipw_balance = ipw_balance,
         modelformula = modelformula,
@@ -102,7 +106,9 @@ gcipdr_ipw_balance <- function(
       ) # end in_parallel
     )
   
-  #plan(sequential)
+  tictoc::toc()
+  
+  #future::plan(sequential)
   mirai::daemons(0)
   
   # extract estimates and stack by boot iteration
@@ -158,7 +164,7 @@ gcipdr_ipw_balance <- function(
 
 do_gcipdr <- function(
     ipd_network,
-    method = c(3,4), # 3 = continuous Gamma, 4 = continuous Johnson
+    method = c("3","4"), # 3 = continuous Gamma, 4 = continuous Johnson
     boot_iter = 100,
     NI_maxEval = 200,
     SI_k = 10000,
@@ -167,7 +173,7 @@ do_gcipdr <- function(
 )
 {
   
-  method <- match.arg(method)
+  method <- as.numeric(match.arg(method))
   
   trt_map <- ipd_network |> 
     dplyr::distinct(study, trt, trt_name)
@@ -190,7 +196,7 @@ do_gcipdr <- function(
   
   # generate pseudodata. Output: list with boot repetition by study. Need to reorganize as list of pooled-by-study data repetitions  
   
-  browser()    
+  #browser()    
   
   set.seed(seed, "L'Ecuyer") 
   
