@@ -222,12 +222,10 @@ do_gcipdr <- function(
         .options = furrr_options(
           seed = TRUE,
           globals = c("mclapply", "skewness", 
-                      "adaptIntegrate"))
+                      "adaptIntegrate", "rmvnorm"))
     )
   
   tictoc::toc()
-  
-  future::plan(sequential)
   
   
   # check if any GC failed with numerical integration only
@@ -237,26 +235,36 @@ do_gcipdr <- function(
     ) == "try-error"
   )
   
-  names(raw)[fails]
   # if some fails, rerun with MC integration
   if (length(fails) > 0){
+    
     set.seed(seed, "L'Ecuyer") 
     
-    for (i in fails)
-      
-      
-      raw[i] <- gcipdr::Simulate.many.datasets(
-        input[i],
-        H = boot_iter, 
-        method = method, 
-        checkdata = TRUE, 
-        tabulate.similar.data = TRUE,
-        stochastic.integration = TRUE,
-        SI_k = SI_k
+    tictoc::tic()
+    raw[names(raw)[fails]] <- 
+      names(raw)[fails] |> 
+      furrr::future_map(
         
+        \(i) gcipdr::Simulate.many.datasets(
+          input[i],
+          H = boot_iter, 
+          method = method, 
+          checkdata = TRUE, 
+          tabulate.similar.data = TRUE, 
+          stochastic.integration = TRUE, # will override NI setup if TRUE
+          SI_k = SI_k
+        )[[1]],
+        .options = furrr_options(
+          seed = TRUE,
+          globals = c("mclapply", "skewness", 
+                      "adaptIntegrate"))
       )
     
+    tictoc::toc()
+    
   }
+  
+  future::plan(sequential)
   
   # pool pseudodata by study
   
