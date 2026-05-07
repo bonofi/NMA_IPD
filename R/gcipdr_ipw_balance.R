@@ -237,7 +237,7 @@ do_gcipdr <- function(
     ) == "try-error"
   )
   
-  
+  names(raw)[fails]
   # if some fails, rerun with MC integration
   if (length(fails) > 0){
     set.seed(seed, "L'Ecuyer") 
