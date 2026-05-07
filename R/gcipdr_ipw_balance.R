@@ -51,7 +51,6 @@ gcipdr_ipw_balance <- function(
   )
   
   
-  #browser()   
   
   cores <- detectCores() - 1
   
@@ -122,6 +121,10 @@ gcipdr_ipw_balance <- function(
     ) |> 
     dplyr::bind_rows()
   
+  # extract extra info
+  extra <- cleanipw |> 
+    dplyr::distinct(model, evidence, estimand,
+                    level, evidence2)
   
   # calculate summary over boot iteration
   
@@ -136,7 +139,7 @@ gcipdr_ipw_balance <- function(
         .cols = dplyr::where(is.numeric),
         .fns = list(
           Mean = ~ mean(.x, na.rm = TRUE),
-          SD = ~ sd(.x, na.rm = TRUE)
+          SE = ~ sd(.x, na.rm = TRUE)
           # more ?
         ),
         .names = "{.col}_{.fn}"  # glue-style template
@@ -145,17 +148,37 @@ gcipdr_ipw_balance <- function(
     dplyr::ungroup()
   # eventually rearrange with pivot to have same format as ipw_balance$est ?
   
+  meanest <- summipw |> 
+    dplyr::select(
+      dplyr::ends_with("_Mean")
+    )
+  names(meanest) <- stringr::str_replace_all(
+    names(meanest), "_Mean", ""
+  )
+  
+  estse <- summipw |> 
+    dplyr::select(
+      dplyr::ends_with("_SE")
+    )
+  names(estse) <- stringr::str_replace_all(
+    names(estse), "_SE", ""
+  )
   
   
   return(
     list(
-      rawres = rawipw,
+      corr_diagnostics_pseudodat = pseudodata$raw |> 
+        purrr::map(
+          \(obj) obj$is.data.similar$lower.triangular.Rx
+        ),
       rawest = cleanipw,
-      est = summipw
+      est_se = estse |> 
+        cbind(extra),
+      est = meanest |> 
+        cbind(extra)
     )
   )
-  
-  
+
   
 }
 
@@ -195,8 +218,6 @@ do_gcipdr <- function(
   )
   
   # generate pseudodata. Output: list with boot repetition by study. Need to reorganize as list of pooled-by-study data repetitions  
-  
-  browser()    
   
   
   cores <- detectCores() - 1
