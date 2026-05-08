@@ -18,7 +18,7 @@ run_two_stage_nma <- function(
         study_level_model_formula, 
         data = df) |> 
         broom::tidy() |> 
-        add_column(treat2 = df$ref_trt |> 
+        tibble::add_column(treat2 = df$ref_trt |> 
                      unique() |> 
                      stringr::str_remove_all("seq:0; name:"),
                    studlab = unique(df$study))
@@ -26,20 +26,20 @@ run_two_stage_nma <- function(
   
   
   netdata <- raw_lm |> 
-    filter(grepl("trt_", term)) |> 
-    mutate(
+    dplyr::filter(grepl("trt_", term)) |> 
+    dplyr::mutate(
       term = stringr::str_remove_all(term,
                                      "trt_name")
     ) |> 
-    select(term, estimate, std.error, treat2, studlab) |> 
-    rename(
+    dplyr::select(term, estimate, std.error, treat2, studlab) |> 
+    dplyr::rename(
       treat1 = term,
       TE = estimate,
       seTE = std.error
     )
   
   # Stage 2
-  nma <- netmeta(TE, seTE, treat1, treat2, 
+  nma <- netmeta::netmeta(TE, seTE, treat1, treat2, 
                  studlab, data = netdata)
   
   netmeta::netgraph(nma)

@@ -78,7 +78,8 @@ gcipdr_ipw_balance <- function(
               estimand = estimand,
               stop_rule = stop_rule,
               ref_study = ref_study,
-              n_trees = n_trees
+              n_trees = n_trees,
+              print_diagnostics = FALSE
             ),
             silent = TRUE
           )

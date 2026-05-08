@@ -8,7 +8,8 @@ ipw_balance <- function(ipd_network,
                         estimand = c("ATE", "ATT"),
                         ref_study = "1",   # for ATT estimation
                         stop_rule = "ks.mean",   # can be a vector
-                        n_trees = 3000)
+                        n_trees = 3000,
+                        print_diagnostics = TRUE)
 {
   
   estimand <- match.arg(estimand)
@@ -78,36 +79,39 @@ ipw_balance <- function(ipd_network,
     dplyr::mutate(study = as.factor(study))
   
   # print diagnostics
-  
-  if (!dir.exists("./output/")) 
-    dir.create("./output/")
-  
-  pdf(paste0(
-    "./output/inconsistency-", unique(ipd_network$inconsistency),
-    "_samplesize-", unique(ipd_network$samplesize), ".pdf"
-  ))
-  
-  plot(res)
-  plot(res, plots = 2)
-  ggplot2::ggplot(weights,
-                  ggplot2::aes(study, ps)) + 
-    ggplot2::geom_boxplot() + 
-    ggplot2::labs(title = "Propensity scores")
-  plot(res, plots = 3)
-  plot(res, plots = 4)
-  plot(res, plots = 5)
-  
-  grid::grid.newpage()
-  # gridExtra::grid.table(
-  #   baltable |> 
-  #     dplyr::filter(var == "V1")
-  # )
-  # grid::grid.newpage()
-  gridExtra::grid.table(
-    baltable |> 
-      dplyr::filter(var == "V2")
-  )
-  dev.off()
+  if (print_diagnostics)
+  {
+    if (!dir.exists("./output/")) 
+      dir.create("./output/")
+    
+    pdf(paste0(
+      "./output/inconsistency-", unique(ipd_network$inconsistency),
+      "_samplesize-", unique(ipd_network$samplesize), ".pdf"
+    ))
+    
+    plot(res)
+    plot(res, plots = 2)
+    ggplot2::ggplot(weights,
+                    ggplot2::aes(study, ps)) + 
+      ggplot2::geom_boxplot() + 
+      ggplot2::labs(title = "Propensity scores")
+    plot(res, plots = 3)
+    plot(res, plots = 4)
+    plot(res, plots = 5)
+    
+    grid::grid.newpage()
+    # gridExtra::grid.table(
+    #   baltable |> 
+    #     dplyr::filter(var == "V1")
+    # )
+    # grid::grid.newpage()
+    gridExtra::grid.table(
+      baltable |> 
+        dplyr::filter(var == "V2")
+    )
+    dev.off()
+    
+  }
   
 
   # data with weights
@@ -117,7 +121,7 @@ ipw_balance <- function(ipd_network,
       by=c("study", "usubjid")
     )
 
-  #browser()
+
   
   if (estimand == "ATE")
     # interpret ATE before-after weighting

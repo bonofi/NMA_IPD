@@ -294,14 +294,17 @@ rawbal1 <- 1:dim(simplan)[1] |>
           ),
           "ML-NMR" = multinma(
             ipd_network = df2,
-            modelformula = as.formula(~x + V),
-            datalevel = "ipd"
+            modelformula = as.formula(~ x + V),
+            datalevel = "ipd",
+            print_network = FALSE
           )
         )
       },
       .options = furrr_options(
           seed = TRUE,
-          globals = c("estimand")) 
+          globals = c("estimand", "simplan", "res1dat",
+                      "run_two_stage_nma", "ipw_balance", 
+                      "multinma", "term")) 
         
         #  )
         

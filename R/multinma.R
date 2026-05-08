@@ -11,14 +11,14 @@ multinma <- function(ipd_network,
                      reverse_effects = TRUE,   # 
                      n_chains = 4,
                      n_iter = 2000,
-                     seed = 87632
+                     seed = 87632,
+                     print_network = TRUE
 )
 {
   
   datalevel <- match.arg(datalevel)
   model <- match.arg(model)
-  estimand <- match.arg(estimand)
-  
+
   # must change name of prognostic variable due to bugs
   
   ipd_network <- ipd_network |> 
@@ -27,7 +27,9 @@ multinma <- function(ipd_network,
   replform <- modelformula[2] |> as.character() |> 
     stringr::str_replace("x", "X")
   
-  modelformula <- paste0("~", replform)
+  modelformula <- as.formula(
+    paste0("~", replform)
+  )
   
   ### prepare AGD in case needed
   
@@ -42,7 +44,7 @@ multinma <- function(ipd_network,
     dplyr::left_join(
       ipd_network |> 
         dplyr::group_by(study, trt_name) |> 
-        dplyr::summarise(n = n()),
+        dplyr::summarise(n = dplyr::n()),
       by = c("study", "trt_name")
     ) |> 
     dplyr::ungroup()
@@ -50,8 +52,8 @@ multinma <- function(ipd_network,
   
   if (datalevel == "ipd")
     
-    pso_net <- combine_network(
-      set_ipd(ipd_network, 
+    pso_net <- multinma::combine_network(
+      multinma::set_ipd(ipd_network, 
               study = study, 
               trt = trt_name, 
               y = y,
@@ -66,8 +68,8 @@ multinma <- function(ipd_network,
     # combine AGD and IPD
     
     
-    pso_net <- combine_network(
-      set_ipd(
+    pso_net <- multinma::combine_network(
+      multinma::set_ipd(
         ipd_network |> 
           dplyr::filter(study == "1"),
         study = study, 
@@ -75,7 +77,7 @@ multinma <- function(ipd_network,
         y = y,
         trt_ref = "A"
       ),
-      set_agd_arm(
+      multinma::set_agd_arm(
         agd_network |> 
           dplyr::filter(study !="1"),
         study = study, 
@@ -90,18 +92,18 @@ multinma <- function(ipd_network,
     
     # integrate over distribution of reference study: this will not work with more strata: 
     # consider to give command manually as argument
-    pso_net <- add_integration(
+    pso_net <- multinma::add_integration(
       pso_net,
-      X= distr(qgamma, mean = X_mean, sd = X_sd),
-      V2 = distr(qbern, prob = V2_mean),
+      X= multinma::distr(qgamma, mean = X_mean, sd = X_sd),
+      V2 = multinma::distr(qbern, prob = V2_mean),
       n_int = 1000
     )
     
     
   } else if (datalevel == "agd")
     
-    pso_net <- combine_network(
-      set_agd_arm(
+    pso_net <- multinma::combine_network(
+      multinma::set_agd_arm(
         agd_network,
         study = study, 
         trt = trt_name, 
@@ -139,27 +141,28 @@ multinma <- function(ipd_network,
   # )
   # 
   
-  
-  png("./output/network.png")
-  multinma:::plot.nma_data(
-    pso_net, weight_nodes = TRUE, 
-    weight_edges = TRUE, show_trt_class = FALSE) + 
-    ggplot2::theme(legend.position = "bottom", 
-                   legend.box = "vertical") 
-  
-  dev.off()
-  
-  
+  if (print_network){
+    png("./output/network.png")
+    multinma:::plot.nma_data(
+      pso_net, weight_nodes = TRUE, 
+      weight_edges = TRUE, show_trt_class = FALSE) + 
+      ggplot2::theme(legend.position = "bottom", 
+                     legend.box = "vertical") 
+    
+    dev.off()
+    
+  }
   
   set.seed(seed)
   
-  nma <- nma(pso_net, 
-             trt_effects = model,
-             link = "identity", 
-             likelihood = "normal",
-             regression = modelformula,
-             iter = n_iter,
-             chains = n_chains
+  nma <- multinma::nma(
+    pso_net, 
+    trt_effects = model,
+    link = "identity", 
+    likelihood = "normal",
+    regression = modelformula,
+    iter = n_iter,
+    chains = n_chains
   )
   
   
