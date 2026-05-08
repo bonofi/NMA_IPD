@@ -256,13 +256,16 @@ simplan <- purrr::map(
   dplyr::bind_rows()
   
 
+cores <- detectCores() - 1
+
+future::plan(multisession, workers = cores)
 
 tictoc::tic()
 
 rawbal1 <- 1:dim(simplan)[1] |> 
-  purrr::map(
+  furrr::future_map(
 
-    purrr::in_parallel(
+  #  purrr::in_parallel(
       
       \(i){
         # set level
@@ -295,14 +298,19 @@ rawbal1 <- 1:dim(simplan)[1] |>
             datalevel = "ipd"
           )
         )
-      }
-    )
+      },
+      .options = furrr_options(
+          seed = TRUE,
+          globals = c("estimand")) 
+        
+        #  )
         
       )
 
 
 tictoc::toc()
 
+future::plan(sequential)
 
 ### extract contrasts after balancing
 
