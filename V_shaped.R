@@ -244,7 +244,13 @@ simplan <- purrr::map(
     \(n) data.frame(
       inc = inc,
       n = n
-    )
+    ) |> 
+      dplyr::mutate(
+        dplyr::across(
+          everything(),
+          ~as.character(.x)
+        )
+      )
   )
 ) |> 
   dplyr::bind_rows()
@@ -253,42 +259,47 @@ simplan <- purrr::map(
 
 tictoc::tic()
 
-rawbal1 <- split(res1dat, res1dat$inconsistency) |> 
+rawbal1 <- 1:dim(simplan)[1] |> 
   purrr::map(
-    \(df1) split(df1, df1$samplesize) |> 
-      purrr::map(
-        \(df2){
-          
-          print(
-            paste0(
-              "inconsistency ", 
-              unique(df2$inconsistency), 
-              "; sample size ", unique(df2$samplesize)
-            )
-          )
-          
-          list(
-            "2sNMA" = run_two_stage_nma(
-              ipd_network = df2,
-              study_level_model_formula = formula(y~trt_name + x + V)
-            ),
-            "IPW" = ipw_balance(
-              ipd_network = df2,
-              model_formula = as.formula(study ~ x + V1 + V2),
-              estimand = "ATE",
-              stop_rule = "es.mean"
-            ),
-            "ML-NMR" = multinma(
-              ipd_network = df2,
-              modelformula = as.formula(~x + V),
-              datalevel = "ipd"
-            )
-          )
-        }
+
+    purrr::in_parallel(
+      
+      \(i){
+        # set level
+        inc <- simplan[i, "inc"]
+        n <- simplan[i, "n"]   
+        print(
+          paste0(
+            "inconsistency ", inc, 
+            "; sample size ", n )
+        )
         
+        df2 <- res1dat |> 
+          dplyr::filter(inconsistency == inc & 
+                          samplesize == n)
+        
+        list(
+          "2sNMA" = run_two_stage_nma(
+            ipd_network = df2,
+            study_level_model_formula = formula(y~trt_name + x + V)
+          ),
+          "IPW" = ipw_balance(
+            ipd_network = df2,
+            model_formula = as.formula(study ~ x + V1 + V2),
+            estimand = "ATE",
+            stop_rule = "es.mean"
+          ),
+          "ML-NMR" = multinma(
+            ipd_network = df2,
+            modelformula = as.formula(~x + V),
+            datalevel = "ipd"
+          )
+        )
+      }
+    )
         
       )
-  ) 
+
 
 tictoc::toc()
 
