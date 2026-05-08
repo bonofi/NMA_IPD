@@ -235,6 +235,62 @@ names(rawbal1) <- names(inconsistency)
 for (i in names(inconsistency))
   names(rawbal1[[i]]) <- names(ssizes) 
 
+###### PARALLELIZE TASK 
+
+simplan <- purrr::map(
+  unique(res1dat$inconsistency),
+  \(inc) purrr::map(
+    unique(res1dat$samplesize),
+    \(n) data.frame(
+      inc = inc,
+      n = n
+    )
+  )
+) |> 
+  dplyr::bind_rows()
+  
+
+
+tictoc::tic()
+
+rawbal1 <- split(res1dat, res1dat$inconsistency) |> 
+  purrr::map(
+    \(df1) split(df1, df1$samplesize) |> 
+      purrr::map(
+        \(df2){
+          
+          print(
+            paste0(
+              "inconsistency ", 
+              unique(df2$inconsistency), 
+              "; sample size ", unique(df2$samplesize)
+            )
+          )
+          
+          list(
+            "2sNMA" = run_two_stage_nma(
+              ipd_network = df2,
+              study_level_model_formula = formula(y~trt_name + x + V)
+            ),
+            "IPW" = ipw_balance(
+              ipd_network = df2,
+              model_formula = as.formula(study ~ x + V1 + V2),
+              estimand = "ATE",
+              stop_rule = "es.mean"
+            ),
+            "ML-NMR" = multinma(
+              ipd_network = df2,
+              modelformula = as.formula(~x + V),
+              datalevel = "ipd"
+            )
+          )
+        }
+        
+        
+      )
+  ) 
+
+tictoc::toc()
 
 
 ### extract contrasts after balancing
