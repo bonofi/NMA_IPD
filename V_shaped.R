@@ -551,11 +551,12 @@ rawbal1c <- split(res1dat, res1dat$inconsistency) |>
           
           list(
             
-            "GC" = ipw_balance(
+            "GC-IPW" = gcipdr_ipw_balance(
               ipd_network = df2,
-              model_formula = as.formula(study ~ x + V1 + V2),
+              modelformula = as.formula(study ~ x + V1 + V2),
               estimand = "ATT",
-              stop_rule = "es.mean"
+              stop_rule = "es.mean",
+              boot_iter = 100
             )
 
           )
@@ -571,6 +572,40 @@ for (i in names(inconsistency))
   names(rawbal1c[[i]]) <- names(ssizes) 
 
 
+res1cbal <- lapply(
+  names(inconsistency),
+  function(i) lapply(
+    names(ssizes), 
+    function(j)
+      # use this code
+      lapply(
+        c(
+          "GC-IPW"
+        ),
+        function(x)
+          rawbal1c[[i]][[j]][[x]]$est
+      ) |>
+      dplyr::bind_rows()|>
+      tibble::as_tibble() |> 
+      tibble::add_column(
+        inconsistency = i,
+        samplesize = j
+      )
+  )
+) |> 
+  dplyr::bind_rows() |> 
+  dplyr::mutate(
+    samplesize = factor(samplesize, 
+                        levels = c("small", "medium", "large")),
+    inconsistency = factor(inconsistency,
+                           levels = c("none", "mild", "high"))
+  )
+
+
+allres1c <- allres1b |> 
+  dplyr::bind_rows(
+    res1cbal
+  )
 
 
 
