@@ -556,8 +556,7 @@ rawbal1c <- split(res1dat, res1dat$inconsistency) |>
               modelformula = as.formula(study ~ x + V1 + V2),
               estimand = "ATT",
               stop_rule = "es.mean",
-              boot_iter = 100,
-              save_raw = FALSE
+              boot_iter = 100
             )
 
           )
@@ -609,7 +608,9 @@ allres1c <- allres1b |>
   )
 
 
+#todo: check if outer level of furrr can speed up module. Check if SI_only is better 
 
+# rawbal1c <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1c.rds")
 
 
 ########################################################################
