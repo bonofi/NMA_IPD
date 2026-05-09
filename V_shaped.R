@@ -191,49 +191,49 @@ summary(
 
 # raw balanced data: IPD available
 # TODO: only balance for mild inconsistency as proof of concept ...?
-system.time(
-  
-rawbal1 <- split(res1dat, res1dat$inconsistency) |> 
-  purrr::map(
-    \(df1) split(df1, df1$samplesize) |> 
-      purrr::map(
-        \(df2){
-          
-          print(
-            paste0(
-              "inconsistency ", 
-              unique(df2$inconsistency), 
-              "; sample size ", unique(df2$samplesize)
-            )
-          )
-          
-          list(
-            "2sNMA" = run_two_stage_nma(
-              ipd_network = df2,
-              study_level_model_formula = formula(y~trt_name + x + V)
-            ),
-            "IPW" = ipw_balance(
-              ipd_network = df2,
-              model_formula = as.formula(study ~ x + V1 + V2),
-              estimand = "ATE",
-              stop_rule = "es.mean"
-            ),
-            "ML-NMR" = multinma(
-              ipd_network = df2,
-              modelformula = as.formula(~x + V),
-              datalevel = "ipd"
-            )
-          )
-        }
-          
-          
-      )
-  ) 
-)
-
-names(rawbal1) <- names(inconsistency)
-for (i in names(inconsistency))
-  names(rawbal1[[i]]) <- names(ssizes) 
+# system.time(
+#   
+# rawbal1 <- split(res1dat, res1dat$inconsistency) |> 
+#   purrr::map(
+#     \(df1) split(df1, df1$samplesize) |> 
+#       purrr::map(
+#         \(df2){
+#           
+#           print(
+#             paste0(
+#               "inconsistency ", 
+#               unique(df2$inconsistency), 
+#               "; sample size ", unique(df2$samplesize)
+#             )
+#           )
+#           
+#           list(
+#             "2sNMA" = run_two_stage_nma(
+#               ipd_network = df2,
+#               study_level_model_formula = formula(y~trt_name + x + V)
+#             ),
+#             "IPW" = ipw_balance(
+#               ipd_network = df2,
+#               model_formula = as.formula(study ~ x + V1 + V2),
+#               estimand = "ATE",
+#               stop_rule = "es.mean"
+#             ),
+#             "ML-NMR" = multinma(
+#               ipd_network = df2,
+#               modelformula = as.formula(~x + V),
+#               datalevel = "ipd"
+#             )
+#           )
+#         }
+#           
+#           
+#       )
+#   ) 
+# )
+# 
+# names(rawbal1) <- names(inconsistency)
+# for (i in names(inconsistency))
+#   names(rawbal1[[i]]) <- names(ssizes) 
 
 ###### PARALLELIZE TASK 
 
@@ -359,6 +359,7 @@ res1bal <- lapply(
                            levels = c("none", "mild", "high"))
   )
 
+# res1bal$evidence2[res1bal$evidence == "2-stage adjusted NMA"] <- "Balanced"
 
 allres1 <- res1 |> 
   dplyr::bind_rows(
@@ -452,6 +453,43 @@ for (i in names(inconsistency))
   names(rawbal1b[[i]]) <- names(ssizes) 
 
 
+
+res1bbal <- lapply(
+  names(inconsistency),
+  function(i) lapply(
+    names(ssizes), 
+    function(j)
+      # use this code
+      lapply(
+        c(
+         # "2sNMA", 
+          "IPW" 
+         # "ML-NMR"
+        ),
+        function(x)
+          rawbal1b[[i]][[j]][[x]]$est
+      ) |>
+      dplyr::bind_rows()|>
+      tibble::as_tibble() |> 
+      tibble::add_column(
+        inconsistency = i,
+        samplesize = j
+      )
+  )
+) |> 
+  dplyr::bind_rows() |> 
+  dplyr::mutate(
+    samplesize = factor(samplesize, 
+                        levels = c("small", "medium", "large")),
+    inconsistency = factor(inconsistency,
+                           levels = c("none", "mild", "high"))
+  )
+
+
+allres1b <- allres1 |> 
+  dplyr::bind_rows(
+    res1bbal
+  )
 
 
 
