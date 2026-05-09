@@ -7,7 +7,8 @@
 run_two_stage_nma <- function(
     ipd_network,  # coming from trial_simul2 
     study_level_model_formula = formula(y~trt_name + x),
-    nma_common = TRUE
+    nma_common = TRUE,
+    print_network = TRUE
     ){
   
   
@@ -42,12 +43,15 @@ run_two_stage_nma <- function(
   nma <- netmeta::netmeta(TE, seTE, treat1, treat2, 
                  studlab, data = netdata)
   
-  netmeta::netgraph(nma)
-  
-  # inconsistency test
-  netmeta:::forest.netsplit(
-    netmeta::netsplit(nma, show = "all")
-  )
+  if (print_network){
+    
+    netmeta::netgraph(nma)
+    
+    # inconsistency test
+    netmeta:::forest.netsplit(
+      netmeta::netsplit(nma, show = "all")
+    )
+  }
   
   nmatype <- ifelse(nma_common, "common", "random")
   message(paste0(

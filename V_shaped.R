@@ -284,7 +284,8 @@ rawbal1 <- 1:dim(simplan)[1] |>
         list(
           "2sNMA" = run_two_stage_nma(
             ipd_network = df2,
-            study_level_model_formula = formula(y~trt_name + x + V)
+            study_level_model_formula = formula(y~trt_name + x + V),
+            print_network = FALSE
           ),
           "IPW" = ipw_balance(
             ipd_network = df2,
@@ -313,13 +314,14 @@ rawbal1 <- 1:dim(simplan)[1] |>
         
       )
 
-
 tictoc::toc()
 
+names(rawbal1) <- apply(simplan, 1, \(x) paste(x, collapse = "-"))
+ 
 future::plan(sequential)
 
 
-# res1bal <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1.rds")
+# rawbal1 <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1.rds")
 
 ### extract contrasts after balancing
 
