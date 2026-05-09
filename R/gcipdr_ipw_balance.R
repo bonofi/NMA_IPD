@@ -125,7 +125,10 @@ gcipdr_ipw_balance <- function(
   # extract extra info
   extra <- cleanipw |> 
     dplyr::distinct(model, evidence, estimand,
-                    level, evidence2)
+                    level, evidence2) |> 
+    dplyr::mutate(
+      evidence = "GC-IPW"
+    )
   
   # calculate summary over boot iteration
   
@@ -350,4 +353,4 @@ do_gcipdr <- function(
 
 
 
-gcipdr_ipw_balance(res1dat |> filter(samplesize == "small" & inconsistency == "high"))
+# gcipdr_ipw_balance(res1dat |> filter(samplesize == "small" & inconsistency == "high"))

@@ -6,6 +6,7 @@ source("./R/network_simul.R")
 source("./R/run_two_stage_nma.R")
 source("./R/ipw_balance.R")
 source("./R/multinma.R")
+source("./R/gcipdr_ipw_balance.R")
 
 # GENERAL SETTINGS
 ##### IMT ####
@@ -453,7 +454,7 @@ for (i in names(inconsistency))
   names(rawbal1b[[i]]) <- names(ssizes) 
 
 
-
+##
 res1bbal <- lapply(
   names(inconsistency),
   function(i) lapply(
@@ -532,6 +533,42 @@ allres1b |>
 ## approach 2: run multi-level MNA using summary data (except one study) -> ATE
 ## approach 3: GCIPDR and IPW pseudodata -> ATT
 
+system.time(
+  
+rawbal1c <- split(res1dat, res1dat$inconsistency) |> 
+  purrr::map(
+    \(df1) split(df1, df1$samplesize) |> 
+      purrr::map(
+        \(df2){
+          
+          print(
+            paste0(
+              "inconsistency ", 
+              unique(df2$inconsistency), 
+              "; sample size ", unique(df2$samplesize)
+            )
+          )
+          
+          list(
+            
+            "GC" = ipw_balance(
+              ipd_network = df2,
+              model_formula = as.formula(study ~ x + V1 + V2),
+              estimand = "ATT",
+              stop_rule = "es.mean"
+            )
+
+          )
+        }
+        
+        
+      )
+  ) 
+)
+
+names(rawbal1c) <- names(inconsistency)
+for (i in names(inconsistency))
+  names(rawbal1c[[i]]) <- names(ssizes) 
 
 
 
