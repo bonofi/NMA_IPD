@@ -318,6 +318,9 @@ tictoc::toc()
 
 future::plan(sequential)
 
+
+# res1bal <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1.rds")
+
 ### extract contrasts after balancing
 
 res1bal <- lapply(
