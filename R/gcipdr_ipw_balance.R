@@ -17,7 +17,8 @@ gcipdr_ipw_balance <- function(
     NI_maxEval = 10000,
     SI_k = 10000,
     only_SI = FALSE,
-    seed = 49632
+    seed = 49632,
+    save_raw = TRUE
     
 ){
   
@@ -175,7 +176,12 @@ gcipdr_ipw_balance <- function(
         purrr::map(
           \(obj) obj$is.data.similar$lower.triangular.Rx
         ),
-      rawest = cleanipw,
+      rawest = {
+        if (save_raw)
+          cleanipw
+        else 
+          NULL
+      },
       est_se = estse |> 
         cbind(extra),
       est = meanest |> 

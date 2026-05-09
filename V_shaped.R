@@ -556,7 +556,8 @@ rawbal1c <- split(res1dat, res1dat$inconsistency) |>
               modelformula = as.formula(study ~ x + V1 + V2),
               estimand = "ATT",
               stop_rule = "es.mean",
-              boot_iter = 100
+              boot_iter = 100,
+              save_raw = FALSE
             )
 
           )
