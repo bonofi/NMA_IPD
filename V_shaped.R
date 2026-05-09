@@ -290,13 +290,16 @@ rawbal1 <- 1:dim(simplan)[1] |>
             ipd_network = df2,
             model_formula = as.formula(study ~ x + V1 + V2),
             estimand = "ATE",
-            stop_rule = "es.mean"
+            stop_rule = "es.mean",
+            print_diagnostics = FALSE,
+            save_raw = FALSE
           ),
           "ML-NMR" = multinma(
             ipd_network = df2,
             modelformula = as.formula(~ x + V),
             datalevel = "ipd",
-            print_network = FALSE
+            print_network = FALSE,
+            save_raw = FALSE
           )
         )
       },
@@ -304,7 +307,7 @@ rawbal1 <- 1:dim(simplan)[1] |>
           seed = TRUE,
           globals = c("estimand", "simplan", "res1dat",
                       "run_two_stage_nma", "ipw_balance", 
-                      "multinma", "term")) 
+                      "multinma")) 
         
         #  )
         

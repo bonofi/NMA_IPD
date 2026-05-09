@@ -9,7 +9,8 @@ ipw_balance <- function(ipd_network,
                         ref_study = "1",   # for ATT estimation
                         stop_rule = "ks.mean",   # can be a vector
                         n_trees = 3000,
-                        print_diagnostics = TRUE)
+                        print_diagnostics = TRUE,
+                        save_raw = TRUE)
 {
   
   estimand <- match.arg(estimand)
@@ -188,7 +189,12 @@ ipw_balance <- function(ipd_network,
   
   return(
     list(
-      rawres = res,
+      rawres = {
+        if (save_raw)
+          res
+        else
+          NULL
+      },
       weighted_mod = mod,
       ps_weights = data,
       est = modcontr |> 

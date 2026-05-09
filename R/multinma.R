@@ -12,7 +12,8 @@ multinma <- function(ipd_network,
                      n_chains = 4,
                      n_iter = 2000,
                      seed = 87632,
-                     print_network = TRUE
+                     print_network = TRUE,
+                     save_raw = TRUE
 )
 {
   
@@ -207,7 +208,12 @@ multinma <- function(ipd_network,
   
   return(
     list(
-      mlnmr = nma,
+      mlnmr = {
+        if (save_raw)
+          nma
+        else
+          NULL
+      },
       est = modcontr
     )
   )
