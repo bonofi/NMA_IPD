@@ -656,3 +656,4 @@ names(rawbal1d) <- names(inconsistency)
 for (i in names(inconsistency))
   names(rawbal1d[[i]]) <- names(ssizes) 
 
+# rawbal1d <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1d.rds")
