@@ -247,7 +247,7 @@ do_gcipdr <- function(
           NI_maxEval = NI_maxEval,
           SI_k = SI_k
         )[[1]],
-        .options = furrr_options(
+        .options = furrr::furrr_options(
           seed = TRUE,
           globals = c("mclapply", "skewness", 
                       "adaptIntegrate", "rmvnorm"))
@@ -282,7 +282,7 @@ do_gcipdr <- function(
           stochastic.integration = TRUE, # will override NI setup if TRUE
           SI_k = SI_k
         )[[1]],
-        .options = furrr_options(
+        .options = furrr::furrr_options(
           seed = TRUE,
           globals = c("mclapply", "skewness", 
                       "adaptIntegrate"))
