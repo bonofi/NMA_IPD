@@ -143,6 +143,10 @@ multinma <- function(ipd_network,
   # 
   
   if (print_network){
+    
+    if (!dir.exists("./output/")) 
+      dir.create("./output/")
+    
     png("./output/network.png")
     multinma:::plot.nma_data(
       pso_net, weight_nodes = TRUE, 
