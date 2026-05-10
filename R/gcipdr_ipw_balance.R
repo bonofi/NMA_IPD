@@ -18,7 +18,8 @@ gcipdr_ipw_balance <- function(
     SI_k = 10000,
     only_SI = FALSE,
     seed = 49632,
-    save_raw = TRUE
+    save_raw = TRUE,
+    cores = detectCores() - 1 # ncores to use
     
 ){
   
@@ -48,12 +49,9 @@ gcipdr_ipw_balance <- function(
     NI_maxEval = NI_maxEval,
     SI_k = SI_k,
     only_SI = only_SI,
-    seed = seed
+    seed = seed,
+    cores = cores
   )
-  
-  
-  
-  cores <- detectCores() - 1
   
   #future::plan(multisession, workers = cores)
   mirai::daemons(cores)
@@ -202,7 +200,8 @@ do_gcipdr <- function(
     NI_maxEval = 200,
     SI_k = 10000,
     only_SI = FALSE,
-    seed = 49632
+    seed = 49632,
+    cores = detectCores() - 1 # ncores to use
 )
 {
   
@@ -229,8 +228,6 @@ do_gcipdr <- function(
   
   # generate pseudodata. Output: list with boot repetition by study. Need to reorganize as list of pooled-by-study data repetitions  
   
-  
-  cores <- detectCores() - 1
   
   set.seed(seed, "L'Ecuyer") 
   

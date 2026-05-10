@@ -617,4 +617,60 @@ allres1c <- allres1b |>
 # ---> assuming IPD is NOT available for all studies
 # ######################################################################
 
+cores <- detectCores() - 3
 
+future::plan(multisession, workers = cores)
+
+set.seed(5910, "L'Ecuyer")
+
+tictoc::tic()
+
+rawbal1d <- 1:dim(simplan)[1] |> 
+  furrr::future_map(
+    
+    #  purrr::in_parallel(
+    
+    \(i){
+      # set level
+      inc <- simplan[i, "inc"]
+      n <- simplan[i, "n"]   
+      print(
+        paste0(
+          "inconsistency ", inc, 
+          "; sample size ", n )
+      )
+      
+      df2 <- res1dat |> 
+        dplyr::filter(inconsistency == inc & 
+                        samplesize == n)
+      
+      list(
+    
+          "GC-IPW" = gcipdr_ipw_balance(
+            ipd_network = df2,
+            modelformula = as.formula(study ~ x + V1 + V2),
+            estimand = "ATT",
+            datalevel = "agd",
+            stop_rule = "es.mean",
+            boot_iter = 100,
+            cores = parallelly::availableCores()
+          )
+          
+        
+      )
+    },
+    .options = furrr_options(
+      seed = TRUE,
+      globals = c("estimand", "simplan", "res1dat",
+                  "gcipdr_ipw_balance", "do_gcipdr",
+                  "detectCores")) 
+    
+    #  )
+    
+  )
+
+tictoc::toc()
+
+names(rawbal1d) <- apply(simplan, 1, \(x) paste(x, collapse = "-"))
+
+future::plan(sequential)
