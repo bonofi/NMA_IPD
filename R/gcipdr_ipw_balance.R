@@ -355,5 +355,10 @@ do_gcipdr <- function(
 }
 
 
-
-# gcipdr_ipw_balance(res1dat |> filter(samplesize == "small" & inconsistency == "high"))
+# 
+# prova <- gcipdr_ipw_balance(
+#    res1dat |> 
+#      filter(samplesize == "small" & inconsistency == "high"),
+#    datalevel = "agd",
+#    estimand = "ATT"
+#    )
