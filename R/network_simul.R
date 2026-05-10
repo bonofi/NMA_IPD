@@ -9,7 +9,7 @@
 #' - design (list - TRTs in each study (head-to-head or multiarm); first name is control arm)
 #' - delta (list - TRT effect(s) in each study)
 #' - subdelta (list - TRT effect(s) in study's modifier stratum)
-#' - mode_prev (list - prevalences of modifier's strata in each study; must have equal lenght of corresponding list element in subdelta)
+#' - mod_prev (list - prevalences of modifier's strata in each study; must have equal length of corresponding list element in subdelta)
 #' - sigma (vector - min-max range residual error in study; will be Uniformly sampled)
 #' @description
 #' Number of unique TRTs in network must match number of treatments in IMT, anchored to same control. Design must be any combination of the above treatment (head-to-head or multi-arm). Design in each study determines the network structure (V-shape, triangle, star, etc ...)
