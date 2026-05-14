@@ -154,17 +154,21 @@ gcipdr_ipw_balance <- function(
   
   meanest <- summipw |> 
     dplyr::select(
+      contrast,
       dplyr::ends_with("_Mean")
     )
-  names(meanest) <- stringr::str_replace_all(
+  names(meanest)[grepl("_Mean", 
+                       names(meanest))] <- stringr::str_replace_all(
     names(meanest), "_Mean", ""
   )
   
   estse <- summipw |> 
     dplyr::select(
+      contrast,
       dplyr::ends_with("_SE")
     )
-  names(estse) <- stringr::str_replace_all(
+  names(estse)[grepl("_SE", 
+                     names(estse))] <- stringr::str_replace_all(
     names(estse), "_SE", ""
   )
   
