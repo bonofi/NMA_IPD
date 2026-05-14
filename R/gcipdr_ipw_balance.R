@@ -125,6 +125,7 @@ gcipdr_ipw_balance <- function(
   extra <- cleanipw |> 
     dplyr::distinct(model, evidence, estimand,
                     level, evidence2) |> 
+    na.omit() |> 
     dplyr::mutate(
       evidence = "GC-IPW",
       level = toupper(datalevel)
