@@ -460,12 +460,9 @@ res1bbal <- lapply(
   function(i) lapply(
     names(ssizes), 
     function(j)
-      # use this code
       lapply(
         c(
-         # "2sNMA", 
           "IPW" 
-         # "ML-NMR"
         ),
         function(x)
           rawbal1b[[i]][[j]][[x]]$est
@@ -578,13 +575,14 @@ res1cbal <- lapply(
   function(i) lapply(
     names(ssizes), 
     function(j)
-      # use this code
       lapply(
         c(
           "GC-IPW"
         ),
         function(x)
-          rawbal1c[[i]][[j]][[x]]$est
+          rawbal1c[[i]][[j]][[x]]$est |> 
+          ## temporary code to address bug ...
+          mutate(contrast = unique(rawbal1c[[i]][[j]][[x]]$rawest$contrast), .before = 1) |> mutate(estimand = "ATT", level = "IPD-AD", evidence2 = "Balanced") 
       ) |>
       dplyr::bind_rows()|>
       tibble::as_tibble() |> 
@@ -661,13 +659,14 @@ res1dbal <- lapply(
   function(i) lapply(
     names(ssizes), 
     function(j)
-      # use this code
       lapply(
         c(
           "GC-IPW"
         ),
         function(x)
-          rawbal1d[[i]][[j]][[x]]$est
+          rawbal1d[[i]][[j]][[x]]$est |> 
+          ## temporary code to address bug ...
+          add_column(contrast = unique(rawbal1d[[i]][[j]][[x]]$rawest$contrast), .before = 1) |> mutate(estimand = "ATT", level = "AD", evidence2 = "Balanced")
       ) |>
       dplyr::bind_rows()|>
       tibble::as_tibble() |> 
