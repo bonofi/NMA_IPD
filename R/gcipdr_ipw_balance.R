@@ -126,7 +126,8 @@ gcipdr_ipw_balance <- function(
     dplyr::distinct(model, evidence, estimand,
                     level, evidence2) |> 
     dplyr::mutate(
-      evidence = "GC-IPW"
+      evidence = "GC-IPW",
+      level = toupper(datalevel)
     )
   
   # calculate summary over boot iteration
