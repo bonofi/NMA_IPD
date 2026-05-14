@@ -571,6 +571,7 @@ names(rawbal1c) <- names(inconsistency)
 for (i in names(inconsistency))
   names(rawbal1c[[i]]) <- names(ssizes) 
 
+# rawbal1c <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1c.rds")
 
 res1cbal <- lapply(
   names(inconsistency),
@@ -609,9 +610,6 @@ allres1c <- allres1b |>
 
 
 #todo: check if outer level of furrr can speed up module. Check if SI_only is better 
-
-# rawbal1c <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1c.rds")
-
 
 ########################################################################
 # ---> assuming IPD is NOT available for all studies
@@ -657,3 +655,38 @@ for (i in names(inconsistency))
   names(rawbal1d[[i]]) <- names(ssizes) 
 
 # rawbal1d <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1d.rds")
+
+res1dbal <- lapply(
+  names(inconsistency),
+  function(i) lapply(
+    names(ssizes), 
+    function(j)
+      # use this code
+      lapply(
+        c(
+          "GC-IPW"
+        ),
+        function(x)
+          rawbal1d[[i]][[j]][[x]]$est
+      ) |>
+      dplyr::bind_rows()|>
+      tibble::as_tibble() |> 
+      tibble::add_column(
+        inconsistency = i,
+        samplesize = j
+      )
+  )
+) |> 
+  dplyr::bind_rows() |> 
+  dplyr::mutate(
+    samplesize = factor(samplesize, 
+                        levels = c("small", "medium", "large")),
+    inconsistency = factor(inconsistency,
+                           levels = c("none", "mild", "high"))
+  )
+
+
+allres1d <- allres1c |> 
+  dplyr::bind_rows(
+    res1dbal
+  )
