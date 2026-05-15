@@ -6,6 +6,7 @@
 
 gcipdr_ipw_balance <- function(
     ipd_network,
+    do_pseudodata = TRUE, # if false ipd_network must be list of pseudodata 
     modelformula = as.formula(study ~ x + V1 + V2),   
     datalevel = c("ipd-agd", "agd"), # type of data available: mixed ipd-agd, only agd ...
     estimand = c("ATT", "ATE"),
@@ -31,31 +32,33 @@ gcipdr_ipw_balance <- function(
   studyid <- pickst <- unique(ipd_network$study)
   refstudy <- NULL
   
-  if (datalevel == "ipd-agd")
+  # avoid simulation of reference study if pseudodata generation is internal
+  if (datalevel == "ipd-agd" & do_pseudodata)
   {
     pickst <- setdiff(studyid, ref_study)
     refstudy <- ipd_network |> 
       dplyr::filter(study == ref_study)
   }
   
+  if (do_pseudodata){
+    pseudodata <- do_gcipdr(
+      ipd_network |> 
+        dplyr::filter(study %in% pickst),
+      boot_iter = boot_iter,
+      method = method,
+      NI_maxEval = NI_maxEval,
+      SI_k = SI_k,
+      only_SI = only_SI,
+      seed = seed,
+      cores = cores
+    )
+    
+    gc()
   
+  } else 
+    pseudodata <- list(pseud = ipd_network, raw = NULL)
   
-  #set.seed(seed, "L'Ecuyer")
-  pseudodata <- do_gcipdr(
-    ipd_network |> 
-      dplyr::filter(study %in% pickst),
-    boot_iter = boot_iter,
-    method = method,
-    NI_maxEval = NI_maxEval,
-    SI_k = SI_k,
-    only_SI = only_SI,
-    seed = seed,
-    cores = cores
-  )
-  
-  
-  gc()
-  
+
   #future::plan(multisession, workers = cores)
   mirai::daemons(cores)
   
