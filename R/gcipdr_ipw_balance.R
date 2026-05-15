@@ -234,7 +234,6 @@ do_gcipdr <- function(
   
   # generate pseudodata. Output: list with boot repetition by study. Need to reorganize as list of pooled-by-study data repetitions  
   
-  browser()
   
   set.seed(seed, "L'Ecuyer") 
   
