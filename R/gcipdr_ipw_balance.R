@@ -53,6 +53,9 @@ gcipdr_ipw_balance <- function(
     cores = cores
   )
   
+  
+  gc()
+  
   #future::plan(multisession, workers = cores)
   mirai::daemons(cores)
   
@@ -109,6 +112,8 @@ gcipdr_ipw_balance <- function(
   
   #future::plan(sequential)
   mirai::daemons(0)
+  
+  gc()
   
   # extract estimates and stack by boot iteration
   cleanipw <- 1:length(rawipw) |> 
