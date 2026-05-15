@@ -185,16 +185,17 @@ system.time(
               )
             )
             
-              do_gcipdr(
-                ipd_network = df2,
-                boot_iter = 300,
-                method = "4",
-                SI_k = 30000,
-                only_SI = TRUE,
-                seed = 30697,
-                cores = detectCores()-2
-              )
-              
+            gc()
+            
+            do_gcipdr(
+              ipd_network = df2,
+              boot_iter = 300,
+              method = "4",
+              SI_k = 30000,
+              only_SI = TRUE,
+              seed = 30697,
+              cores = detectCores()-2
+            )
             
           }
           
