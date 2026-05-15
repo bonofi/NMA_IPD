@@ -122,14 +122,13 @@ gcipdr_ipw_balance <- function(
     dplyr::bind_rows()
   
   # extract extra info
-  extra <- cleanipw |> 
-    dplyr::distinct(model, evidence, estimand,
-                    level, evidence2) |> 
-    na.omit() |> 
-    dplyr::mutate(
-      evidence = "GC-IPW",
-      level = toupper(datalevel)
-    )
+  extra <- data.frame(
+    model = NA,
+    evidence = "GC-IPW",
+    estimand = estimand,
+    level = toupper(datalevel),
+    evidence2 = "Balanced"
+  ) 
   
   # calculate summary over boot iteration
   
