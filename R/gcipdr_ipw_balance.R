@@ -234,6 +234,7 @@ do_gcipdr <- function(
   
   # generate pseudodata. Output: list with boot repetition by study. Need to reorganize as list of pooled-by-study data repetitions  
   
+  browser()
   
   set.seed(seed, "L'Ecuyer") 
   
@@ -256,7 +257,8 @@ do_gcipdr <- function(
         .options = furrr::furrr_options(
           seed = TRUE,
           globals = c("mclapply", "skewness", 
-                      "adaptIntegrate", "rmvnorm"))
+                      "adaptIntegrate", "rmvnorm",
+                      "FitJohnsonDistribution"))
     )
   
   tictoc::toc()
@@ -291,7 +293,8 @@ do_gcipdr <- function(
         .options = furrr::furrr_options(
           seed = TRUE,
           globals = c("mclapply", "skewness", 
-                      "adaptIntegrate"))
+                      "adaptIntegrate", "rmvnorm",
+                      "FitJohnsonDistribution"))
       )
     
     tictoc::toc()
