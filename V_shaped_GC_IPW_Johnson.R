@@ -42,7 +42,7 @@ names(rawbal1c4) <- names(inconsistency)
 for (i in names(inconsistency))
   names(rawbal1c4[[i]]) <- names(ssizes) 
 
-# rawbal1c <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1c.rds")
+# rawbal1c4 <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1c4.rds")
 
 res1cbal4 <- lapply(
   names(inconsistency),
@@ -54,8 +54,7 @@ res1cbal4 <- lapply(
           "GC-IPW"
         ),
         function(x)
-          rawbal1c4[[i]][[j]][[x]]$est |> 
-          mutate(evidence = "GC-IPW-4")  
+          rawbal1c4[[i]][[j]][[x]]$est   
       ) |>
       dplyr::bind_rows()|>
       tibble::as_tibble() |> 
@@ -70,8 +69,9 @@ res1cbal4 <- lapply(
     samplesize = factor(samplesize, 
                         levels = c("small", "medium", "large")),
     inconsistency = factor(inconsistency,
-                           levels = c("none", "mild", "high"))
-  )
+                           levels = c("none", "mild", "high")),
+    evidence = "GC-IPW4"
+  ) 
 
 
 allres1c <- allres1b |> 
@@ -125,7 +125,7 @@ names(rawbal1d4) <- names(inconsistency)
 for (i in names(inconsistency))
   names(rawbal1d4[[i]]) <- names(ssizes) 
 
-# rawbal1d <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1d.rds")
+# rawbal1d4 <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1d.rds")
 
 res1dbal4 <- lapply(
   names(inconsistency),
@@ -137,8 +137,7 @@ res1dbal4 <- lapply(
           "GC-IPW"
         ),
         function(x)
-          rawbal1d4[[i]][[j]][[x]]$est |> 
-          mutate(evidence = "GC-IPW-4")
+          rawbal1d4[[i]][[j]][[x]]$est
       ) |>
       dplyr::bind_rows()|>
       tibble::as_tibble() |> 
@@ -153,7 +152,8 @@ res1dbal4 <- lapply(
     samplesize = factor(samplesize, 
                         levels = c("small", "medium", "large")),
     inconsistency = factor(inconsistency,
-                           levels = c("none", "mild", "high"))
+                           levels = c("none", "mild", "high")),
+    evidence = "GC-IPW4"
   )
 
 
