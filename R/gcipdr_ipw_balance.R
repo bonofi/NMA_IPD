@@ -155,27 +155,26 @@ gcipdr_ipw_balance <- function(
       )
     ) |> 
     dplyr::ungroup()
-  # eventually rearrange with pivot to have same format as ipw_balance$est ?
   
   meanest <- summipw |> 
     dplyr::select(
       contrast,
       dplyr::ends_with("_Mean")
     )
-  names(meanest)[grepl("_Mean", 
-                       names(meanest))] <- stringr::str_replace_all(
-    names(meanest), "_Mean", ""
-  )
+  pickm <- grepl("_Mean", 
+                 names(meanest))
+  names(meanest)[pickm] <- stringr::str_replace_all(
+    names(meanest)[pickm], "_Mean", "")
   
   estse <- summipw |> 
     dplyr::select(
       contrast,
       dplyr::ends_with("_SE")
     )
-  names(estse)[grepl("_SE", 
-                     names(estse))] <- stringr::str_replace_all(
-    names(estse), "_SE", ""
-  )
+  picks <- grepl("_SE", 
+                 names(estse))
+  names(estse)[picks] <- stringr::str_replace_all(
+    names(estse)[picks], "_SE", "")
   
   
   return(
