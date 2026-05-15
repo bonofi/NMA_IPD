@@ -27,7 +27,7 @@ system.time(
                 method = "4",
                 estimand = "ATT",
                 stop_rule = "es.mean",
-                boot_iter = 300
+                boot_iter = 100
               )
               
             )
@@ -111,7 +111,7 @@ system.time(
                 estimand = "ATT",
                 datalevel = "agd",
                 stop_rule = "es.mean",
-                boot_iter = 300
+                boot_iter = 100
               )
               
             )
