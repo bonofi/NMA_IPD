@@ -203,3 +203,42 @@ system.time(
         )
     ) 
 )
+
+
+## 
+
+
+system.time(
+  
+  rawGC3 <- split(res1dat, res1dat$inconsistency) |> 
+    purrr::map(
+      \(df1) split(df1, df1$samplesize) |> 
+        purrr::map(
+          \(df2){
+            
+            print(
+              paste0(
+                "inconsistency ", 
+                unique(df2$inconsistency), 
+                "; sample size ", unique(df2$samplesize)
+              )
+            )
+            
+            gc()
+            
+            do_gcipdr(
+              ipd_network = df2,
+              boot_iter = 300,
+              method = "3",
+              SI_k = 30000,
+              only_SI = TRUE,
+              seed = 30697,
+              cores = detectCores()-2
+            )
+            
+          }
+          
+          
+        )
+    ) 
+)
