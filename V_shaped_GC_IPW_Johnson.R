@@ -253,6 +253,18 @@ system.time(
 
 #### RUN GC-IPW IPD-AD
 
+rawGC <- rawGC3
+# substitute GC study 1 with "original" study 1
+for (i in names(rawGC))
+  for (j in names(rawGC[[i]]))
+    for (b in 1:length(rawGC[[i]][[j]]$pseud))
+      rawGC[[i]][[j]]$pseud[[b]][which(
+        rawGC[[i]][[j]]$pseud[[b]]$study == "1"), ] <- res1dat |> 
+  dplyr::filter(study == "1") |> 
+  dplyr::select(
+    any_of(colnames(rawGC[[i]][[j]]$pseud[[b]]$study))
+  )
+
 
 
 #### RUN GC-IPW AD
