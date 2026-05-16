@@ -2,6 +2,9 @@
 # 
 # 
 
+# rawGC3 <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawGC3.rds")
+# rawbal1c4 <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1c4.rds")
+
 
 system.time(
   
