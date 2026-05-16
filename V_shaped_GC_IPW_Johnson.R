@@ -3,7 +3,11 @@
 # 
 
 # rawGC3 <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawGC3.rds")
+# rawGC4 <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawGC4.rds")
 # rawbal1c4 <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1c4.rds")
+# rawbal1d4 <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1d4.rds")
+# rawbal1c <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1c.rds")
+# rawbal1d <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1d.rds")
 
 
 system.time(
@@ -245,3 +249,10 @@ system.time(
         )
     ) 
 )
+
+
+#### RUN GC-IPW IPD-AD
+
+
+
+#### RUN GC-IPW AD
