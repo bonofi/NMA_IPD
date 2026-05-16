@@ -5,7 +5,7 @@
 
 
 checkGCcorr <- function(rawres, 
-                        GConly = FALSE # if GC only input structur is different
+                        GConly = FALSE # if GC only input structure is different
 ){
   
   cordat <- lapply(
