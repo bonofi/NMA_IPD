@@ -7,7 +7,8 @@ source("./R/run_two_stage_nma.R")
 source("./R/ipw_balance.R")
 source("./R/multinma.R")
 source("./R/gcipdr_ipw_balance.R")
-
+source("./R/checkGCcorr.R")
+source("./R/checkGCipwBoot.R")
 # GENERAL SETTINGS
 ##### IMT ####
 # settings:
