@@ -226,7 +226,7 @@ do_gcipdr <- function(
   
   input <- lapply(
     split(ipd_network,
-          unique(ipd_network$study)),
+          ipd_network$study),
     function(x)
       x |> 
       dplyr::select(
