@@ -290,7 +290,9 @@ system.time(
                 do_pseudodata = FALSE,
                 modelformula = as.formula(study ~ x + V1 + V2),
                 estimand = "ATT",
-                stop_rule = "es.mean"
+                stop_rule = "es.mean",
+                cores = detectCores() - 3
+                
               )
               
             )
