@@ -286,7 +286,7 @@ system.time(
             list(
               
               "GC-IPW" = gcipdr_ipw_balance(
-                ipd_network = rawGC[[i]][[j]]$pseud,
+                ipd_network = rawGC[[i]][[j]]$pseud[sample(1:300, 100)],
                 do_pseudodata = FALSE,
                 modelformula = as.formula(study ~ x + V1 + V2),
                 estimand = "ATT",
