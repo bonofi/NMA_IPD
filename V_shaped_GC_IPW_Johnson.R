@@ -303,7 +303,40 @@ system.time(
     ) 
 )
 
+names(rawbal1_attipdad) <- names(inconsistency)
+for (i in names(inconsistency))
+  names(rawbal1_attipdad[[i]]) <- names(ssizes) 
+
 gc()
+
+res1_attipdad <- lapply(
+  names(inconsistency),
+  function(i) lapply(
+    names(ssizes), 
+    function(j)
+      lapply(
+        c(
+          "GC-IPW"
+        ),
+        function(x)
+          rawbal1_attipdad[[i]][[j]][[x]]$est   
+      ) |>
+      dplyr::bind_rows()|>
+      tibble::as_tibble() |> 
+      tibble::add_column(
+        inconsistency = i,
+        samplesize = j
+      )
+  )
+) |> 
+  dplyr::bind_rows() |> 
+  dplyr::mutate(
+    samplesize = factor(samplesize, 
+                        levels = c("small", "medium", "large")),
+    inconsistency = factor(inconsistency,
+                           levels = c("none", "mild", "high")),
+    evidence = "GC-IPW"
+  ) 
 
 
 #### RUN GC-IPW AD
@@ -344,4 +377,41 @@ system.time(
     ) 
 )
 
+names(rawbal1_attad) <- names(inconsistency)
+for (i in names(inconsistency))
+  names(rawbal1_attad[[i]]) <- names(ssizes) 
+
 gc()
+
+
+res1_attad <- lapply(
+  names(inconsistency),
+  function(i) lapply(
+    names(ssizes), 
+    function(j)
+      lapply(
+        c(
+          "GC-IPW"
+        ),
+        function(x)
+          rawbal1_attad[[i]][[j]][[x]]$est   
+      ) |>
+      dplyr::bind_rows()|>
+      tibble::as_tibble() |> 
+      tibble::add_column(
+        inconsistency = i,
+        samplesize = j
+      )
+  )
+) |> 
+  dplyr::bind_rows() |> 
+  dplyr::mutate(
+    samplesize = factor(samplesize, 
+                        levels = c("small", "medium", "large")),
+    inconsistency = factor(inconsistency,
+                           levels = c("none", "mild", "high")),
+    evidence = "GC-IPW"
+  ) 
+
+
+checkGCipwBoot(rawbal1_attad)
