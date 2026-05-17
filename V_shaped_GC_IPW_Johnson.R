@@ -282,7 +282,7 @@ system.time(
                 "; sample size ", j
               )
             )
-            
+            gc()
             list(
               
               "GC-IPW" = gcipdr_ipw_balance(
@@ -291,7 +291,7 @@ system.time(
                 modelformula = as.formula(study ~ x + V1 + V2),
                 estimand = "ATT",
                 stop_rule = "es.mean",
-                cores = detectCores() - 3
+                cores = detectCores() - 2
                 
               )
               
