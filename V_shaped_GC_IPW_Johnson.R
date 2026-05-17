@@ -254,16 +254,51 @@ system.time(
 #### RUN GC-IPW IPD-AD
 
 rawGC <- rawGC3
-# substitute GC study 1 with "original" study 1
+# for IPD-AD application, substitute GC study 1 with "original" reference study 1
 for (i in names(rawGC))
   for (j in names(rawGC[[i]]))
     for (b in 1:length(rawGC[[i]][[j]]$pseud))
       rawGC[[i]][[j]]$pseud[[b]][which(
         rawGC[[i]][[j]]$pseud[[b]]$study == "1"), ] <- res1dat |> 
-  dplyr::filter(study == "1") |> 
+  dplyr::filter(study == "1" & inconsistency == i & samplesize == j) |> 
   dplyr::select(
-    any_of(colnames(rawGC[[i]][[j]]$pseud[[b]]$study))
+    any_of(colnames(rawGC[[i]][[j]]$pseud[[b]]))
   )
+
+
+## run IPW
+
+system.time(
+  
+  rawbal1_attipdad <- names(rawGC) |> 
+    purrr::map(
+      \(i) names(rawGC[[i]]) |> 
+        purrr::map(
+          \(j){
+            
+            print(
+              paste0(
+                "inconsistency ", i, 
+                "; sample size ", j
+              )
+            )
+            
+            list(
+              
+              "GC-IPW" = gcipdr_ipw_balance(
+                ipd_network = rawGC[[i]][[j]]$pseud,
+                do_pseudodata = FALSE,
+                modelformula = as.formula(study ~ x + V1 + V2),
+                estimand = "ATT",
+                stop_rule = "es.mean"
+              )
+              
+            )
+          }
+          
+        )
+    ) 
+)
 
 
 
