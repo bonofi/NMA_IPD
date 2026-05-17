@@ -36,7 +36,9 @@ checkGCipwBoot <- function(rawbal1c4)
     ggplot2::facet_grid(
       rows = vars(contrast),
       cols = vars(inconsistency)
-    )
+    ) + 
+    ggplot2::labs(title = "GC bootstrap distribution: study contrasts")
+  
   
   
 }

@@ -60,8 +60,9 @@ checkGCcorr <- function(rawres,
     ggplot2::geom_text(
       data = cordat |> 
         dplyr::filter(abs(diff) >= 0.1),
-      hjust = 0, nudge_y = 0.05
-    )
+      hjust = 0, nudge_x = 0.05
+    ) + 
+    ggplot2::labs(title = "Difference between IPD and pseudodata: correlation")
    
 }
 
