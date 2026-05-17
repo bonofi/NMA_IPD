@@ -8,7 +8,7 @@
 # rawbal1d4 <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1d4.rds")
 # rawbal1c <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1c.rds")
 # rawbal1d <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1d.rds")
-
+# rawbal1_attipdad <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1_attipdad.rds")
 
 system.time(
   
@@ -283,6 +283,7 @@ system.time(
               )
             )
             gc()
+            set.seed(2607)
             list(
               
               "GC-IPW" = gcipdr_ipw_balance(
@@ -302,6 +303,45 @@ system.time(
     ) 
 )
 
+gc()
 
 
 #### RUN GC-IPW AD
+
+
+system.time(
+  
+  rawbal1_attad <- names(rawGC3) |> 
+    purrr::map(
+      \(i) names(rawGC3[[i]]) |> 
+        purrr::map(
+          \(j){
+            
+            print(
+              paste0(
+                "inconsistency ", i, 
+                "; sample size ", j
+              )
+            )
+            gc()
+            set.seed(2607)
+            list(
+              
+              "GC-IPW" = gcipdr_ipw_balance(
+                ipd_network = rawGC3[[i]][[j]]$pseud[sample(1:300, 100)],
+                do_pseudodata = FALSE,
+                modelformula = as.formula(study ~ x + V1 + V2),
+                estimand = "ATT",
+                stop_rule = "es.mean",
+                cores = detectCores() - 2
+                
+              )
+              
+            )
+          }
+          
+        )
+    ) 
+)
+
+gc()
