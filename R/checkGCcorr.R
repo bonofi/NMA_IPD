@@ -71,4 +71,4 @@ checkGCcorr <- function(rawres,
 
 
 #checkGCcorr(rawGC3)
-checkGCcorr(rawbal1c4)
+#checkGCcorr(rawbal1c4)
