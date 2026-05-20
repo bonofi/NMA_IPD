@@ -9,6 +9,8 @@
 # rawbal1c <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1c.rds")
 # rawbal1d <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1d.rds")
 # rawbal1_attipdad <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1_attipdad.rds")
+# rawbal1_attad <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1_attad.rds")
+
 
 system.time(
   
@@ -251,7 +253,7 @@ system.time(
 )
 
 
-#### RUN GC-IPW IPD-AD
+#### RUN GC-IPW IPD-AD (reference study nr 1 is in IPD format, all other are AD)
 
 rawGC <- rawGC3
 # for IPD-AD application, substitute GC study 1 with "original" reference study 1
@@ -339,7 +341,7 @@ res1_attipdad <- lapply(
   ) 
 
 
-#### RUN GC-IPW AD
+#### RUN GC-IPW AD (reference study is nr 1) all studies have AD format
 
 
 system.time(
@@ -365,6 +367,7 @@ system.time(
                 do_pseudodata = FALSE,
                 modelformula = as.formula(study ~ x + V1 + V2),
                 estimand = "ATT",
+                datalevel = "agd",
                 stop_rule = "es.mean",
                 cores = detectCores() - 2
                 
@@ -415,3 +418,17 @@ res1_attad <- lapply(
 
 
 checkGCipwBoot(rawbal1_attad)
+
+
+
+allres1b <- res1 |> 
+  dplyr::bind_rows(
+    res1bbal,
+    res1_attipdad,
+    res1_attad |> 
+      mutate(
+        level = "AGD"
+      )
+  )
+
+
