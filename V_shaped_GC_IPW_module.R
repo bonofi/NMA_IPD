@@ -12,171 +12,7 @@
 # rawbal1_attad <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1_attad.rds")
 
 
-system.time(
-  
-  rawbal1c4 <- split(res1dat, res1dat$inconsistency) |> 
-    purrr::map(
-      \(df1) split(df1, df1$samplesize) |> 
-        purrr::map(
-          \(df2){
-            
-            print(
-              paste0(
-                "inconsistency ", 
-                unique(df2$inconsistency), 
-                "; sample size ", unique(df2$samplesize)
-              )
-            )
-            
-            list(
-              
-              "GC-IPW" = gcipdr_ipw_balance(
-                ipd_network = df2,
-                modelformula = as.formula(study ~ x + V1 + V2),
-                method = "4",
-                estimand = "ATT",
-                stop_rule = "es.mean",
-                boot_iter = 100
-              )
-              
-            )
-          }
-          
-          
-        )
-    ) 
-)
-
-names(rawbal1c4) <- names(inconsistency)
-for (i in names(inconsistency))
-  names(rawbal1c4[[i]]) <- names(ssizes) 
-
-# rawbal1c4 <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1c4.rds")
-
-res1cbal4 <- lapply(
-  names(inconsistency),
-  function(i) lapply(
-    names(ssizes), 
-    function(j)
-      lapply(
-        c(
-          "GC-IPW"
-        ),
-        function(x)
-          rawbal1c4[[i]][[j]][[x]]$est   
-      ) |>
-      dplyr::bind_rows()|>
-      tibble::as_tibble() |> 
-      tibble::add_column(
-        inconsistency = i,
-        samplesize = j
-      )
-  )
-) |> 
-  dplyr::bind_rows() |> 
-  dplyr::mutate(
-    samplesize = factor(samplesize, 
-                        levels = c("small", "medium", "large")),
-    inconsistency = factor(inconsistency,
-                           levels = c("none", "mild", "high")),
-    evidence = "GC-IPW4"
-  ) 
-
-
-allres1c <- allres1b |> 
-  dplyr::bind_rows(
-    res1cbal4
-  )
-
-
-#todo: check if outer level of furrr can speed up module. Check if SI_only is better 
-
-########################################################################
-# ---> assuming IPD is NOT available for all studies
-# ######################################################################
-
-system.time(
-  
-  rawbal1d4 <- split(res1dat, res1dat$inconsistency) |> 
-    purrr::map(
-      \(df1) split(df1, df1$samplesize) |> 
-        purrr::map(
-          \(df2){
-            
-            print(
-              paste0(
-                "inconsistency ", 
-                unique(df2$inconsistency), 
-                "; sample size ", unique(df2$samplesize)
-              )
-            )
-            
-            list(
-              
-              "GC-IPW" = gcipdr_ipw_balance(
-                ipd_network = df2,
-                modelformula = as.formula(study ~ x + V1 + V2),
-                method = "4",
-                estimand = "ATT",
-                datalevel = "agd",
-                stop_rule = "es.mean",
-                boot_iter = 100
-              )
-              
-            )
-          }
-          
-        )
-    ) 
-)
-
-names(rawbal1d4) <- names(inconsistency)
-for (i in names(inconsistency))
-  names(rawbal1d4[[i]]) <- names(ssizes) 
-
-# rawbal1d4 <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1d.rds")
-
-res1dbal4 <- lapply(
-  names(inconsistency),
-  function(i) lapply(
-    names(ssizes), 
-    function(j)
-      lapply(
-        c(
-          "GC-IPW"
-        ),
-        function(x)
-          rawbal1d4[[i]][[j]][[x]]$est
-      ) |>
-      dplyr::bind_rows()|>
-      tibble::as_tibble() |> 
-      tibble::add_column(
-        inconsistency = i,
-        samplesize = j
-      )
-  )
-) |> 
-  dplyr::bind_rows() |> 
-  dplyr::mutate(
-    samplesize = factor(samplesize, 
-                        levels = c("small", "medium", "large")),
-    inconsistency = factor(inconsistency,
-                           levels = c("none", "mild", "high")),
-    evidence = "GC-IPW4"
-  )
-
-
-allres1d <- allres1c4 |> 
-  dplyr::bind_rows(
-    res1dbal4
-  )
-
-
-
-
-######################################## JUST FOCUS ON GC ONCE
-
-
+######################################## STRATEGY: run GC on optimal settings first, then run IPW on GC data 
 
 system.time(
   
@@ -419,7 +255,179 @@ res1_attad <- lapply(
 
 checkGCipwBoot(rawbal1_attad)
 
+########################## IPW on GC4 !!!!!! ############################
+########################## 
 
+#### RUN GC-IPW IPD-AD (reference study nr 1 is in IPD format, all other are AD)
+
+rawGC <- rawGC4
+# for IPD-AD application, substitute GC study 1 with "original" reference study 1
+for (i in names(rawGC))
+  for (j in names(rawGC[[i]]))
+    for (b in 1:length(rawGC[[i]][[j]]$pseud))
+      rawGC[[i]][[j]]$pseud[[b]] <- res1dat |> 
+  dplyr::filter(study == "1" & inconsistency == i & samplesize == j) |> 
+  dplyr::select(
+    any_of(colnames(rawGC[[i]][[j]]$pseud[[b]]))
+  ) |> 
+  bind_rows(
+    rawGC[[i]][[j]]$pseud[[b]][which(
+      rawGC[[i]][[j]]$pseud[[b]]$study != "1"), ]
+  )
+
+
+## run IPW
+
+system.time(
+  
+  rawbal1_attipdad4 <- names(rawGC) |> 
+    purrr::map(
+      \(i) names(rawGC[[i]]) |> 
+        purrr::map(
+          \(j){
+            
+            print(
+              paste0(
+                "inconsistency ", i, 
+                "; sample size ", j
+              )
+            )
+            gc()
+            set.seed(2607)
+            list(
+              
+              "GC-IPW" = gcipdr_ipw_balance(
+                ipd_network = rawGC[[i]][[j]]$pseud[sample(1:300, 100)],
+                do_pseudodata = FALSE,
+                modelformula = as.formula(study ~ x + V1 + V2),
+                estimand = "ATT",
+                stop_rule = "es.mean",
+                cores = detectCores() - 2
+                
+              )
+              
+            )
+          }
+          
+        )
+    ) 
+)
+
+names(rawbal1_attipdad4) <- names(inconsistency)
+for (i in names(inconsistency))
+  names(rawbal1_attipdad4[[i]]) <- names(ssizes) 
+
+gc()
+
+res1_attipdad4 <- lapply(
+  names(inconsistency),
+  function(i) lapply(
+    names(ssizes), 
+    function(j)
+      lapply(
+        c(
+          "GC-IPW"
+        ),
+        function(x)
+          rawbal1_attipdad4[[i]][[j]][[x]]$est   
+      ) |>
+      dplyr::bind_rows()|>
+      tibble::as_tibble() |> 
+      tibble::add_column(
+        inconsistency = i,
+        samplesize = j
+      )
+  )
+) |> 
+  dplyr::bind_rows() |> 
+  dplyr::mutate(
+    samplesize = factor(samplesize, 
+                        levels = c("small", "medium", "large")),
+    inconsistency = factor(inconsistency,
+                           levels = c("none", "mild", "high")),
+    evidence = "GC-IPW"
+  ) 
+
+
+#### RUN GC-IPW AD (reference study is nr 1) all studies have AD format
+
+
+system.time(
+  
+  rawbal1_attad4 <- names(rawGC4) |> 
+    purrr::map(
+      \(i) names(rawGC4[[i]]) |> 
+        purrr::map(
+          \(j){
+            
+            print(
+              paste0(
+                "inconsistency ", i, 
+                "; sample size ", j
+              )
+            )
+            gc()
+            set.seed(2607)
+            list(
+              
+              "GC-IPW" = gcipdr_ipw_balance(
+                ipd_network = rawGC4[[i]][[j]]$pseud[sample(1:300, 100)],
+                do_pseudodata = FALSE,
+                modelformula = as.formula(study ~ x + V1 + V2),
+                estimand = "ATT",
+                datalevel = "agd",
+                stop_rule = "es.mean",
+                cores = detectCores() - 2
+                
+              )
+              
+            )
+          }
+          
+        )
+    ) 
+)
+
+names(rawbal1_attad4) <- names(inconsistency)
+for (i in names(inconsistency))
+  names(rawbal1_attad4[[i]]) <- names(ssizes) 
+
+gc()
+
+
+res1_attad4 <- lapply(
+  names(inconsistency),
+  function(i) lapply(
+    names(ssizes), 
+    function(j)
+      lapply(
+        c(
+          "GC-IPW"
+        ),
+        function(x)
+          rawbal1_attad4[[i]][[j]][[x]]$est   
+      ) |>
+      dplyr::bind_rows()|>
+      tibble::as_tibble() |> 
+      tibble::add_column(
+        inconsistency = i,
+        samplesize = j
+      )
+  )
+) |> 
+  dplyr::bind_rows() |> 
+  dplyr::mutate(
+    samplesize = factor(samplesize, 
+                        levels = c("small", "medium", "large")),
+    inconsistency = factor(inconsistency,
+                           levels = c("none", "mild", "high")),
+    evidence = "GC-IPW"
+  ) 
+
+
+checkGCipwBoot(rawbal1_attad)
+
+#####################
 
 allres1b <- res1 |> 
   dplyr::bind_rows(

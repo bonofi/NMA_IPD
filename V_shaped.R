@@ -695,4 +695,4 @@ allres1d <- allres1c |>
 
 ########### DO the ATT step from source #####
 
-# source("./V_shaped_GC_IPW_Johnson.R")
+# source("./V_shaped_GC_IPW_module.R")
