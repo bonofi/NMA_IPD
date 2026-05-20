@@ -9,6 +9,7 @@ source("./R/multinma.R")
 source("./R/gcipdr_ipw_balance.R")
 source("./R/checkGCcorr.R")
 source("./R/checkGCipwBoot.R")
+
 # GENERAL SETTINGS
 ##### IMT ####
 # settings:
@@ -690,3 +691,8 @@ allres1d <- allres1c |>
   dplyr::bind_rows(
     res1dbal
   )
+
+
+########### DO the ATT step from source #####
+
+# source("./V_shaped_GC_IPW_Johnson.R")
