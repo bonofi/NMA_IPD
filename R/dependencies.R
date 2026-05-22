@@ -33,7 +33,7 @@ pak::pak("bonorico/gcipdr")
 library(gcipdr)
 
 library(furrr)
-library(mirai)
 library(carrier)
 library(tictoc)
 library(JohnsonDistribution)
+library(mirai)
