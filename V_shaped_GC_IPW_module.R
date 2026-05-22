@@ -321,35 +321,6 @@ for (i in names(inconsistency))
 
 gc()
 
-res1_attipdad4 <- lapply(
-  names(inconsistency),
-  function(i) lapply(
-    names(ssizes), 
-    function(j)
-      lapply(
-        c(
-          "GC-IPW"
-        ),
-        function(x)
-          rawbal1_attipdad4[[i]][[j]][[x]]$est   
-      ) |>
-      dplyr::bind_rows()|>
-      tibble::as_tibble() |> 
-      tibble::add_column(
-        inconsistency = i,
-        samplesize = j
-      )
-  )
-) |> 
-  dplyr::bind_rows() |> 
-  dplyr::mutate(
-    samplesize = factor(samplesize, 
-                        levels = c("small", "medium", "large")),
-    inconsistency = factor(inconsistency,
-                           levels = c("none", "mild", "high")),
-    evidence = "GC-IPW-4"
-  ) 
-
 
 #### RUN GC-IPW AD (reference study is nr 1) all studies have AD format
 
@@ -397,6 +368,36 @@ for (i in names(inconsistency))
 gc()
 
 
+res1_attipdad4 <- lapply(
+  names(inconsistency),
+  function(i) lapply(
+    names(ssizes), 
+    function(j)
+      lapply(
+        c(
+          "GC-IPW"
+        ),
+        function(x)
+          rawbal1_attipdad4[[i]][[j]][[x]]$est   
+      ) |>
+      dplyr::bind_rows()|>
+      tibble::as_tibble() |> 
+      tibble::add_column(
+        inconsistency = i,
+        samplesize = j
+      )
+  )
+) |> 
+  dplyr::bind_rows() |> 
+  dplyr::mutate(
+    samplesize = factor(samplesize, 
+                        levels = c("small", "medium", "large")),
+    inconsistency = factor(inconsistency,
+                           levels = c("none", "mild", "high")),
+    evidence = "GC-IPW-4"
+  ) 
+
+
 res1_attad4 <- lapply(
   names(inconsistency),
   function(i) lapply(
@@ -427,7 +428,6 @@ res1_attad4 <- lapply(
   ) 
 
 
-checkGCipwBoot(rawbal1_attad)
 
 #####################
 
