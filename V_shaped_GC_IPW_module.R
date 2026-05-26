@@ -10,6 +10,8 @@
 # rawbal1d <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1d.rds")
 # rawbal1_attipdad <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1_attipdad.rds")
 # rawbal1_attad <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1_attad.rds")
+# rawbal1_attipdad4 <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1_attipdad4.rds")
+# rawbal1_attad4 <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1_attad4.rds")
 
 
 ######################################## STRATEGY: run GC on optimal settings first, then run IPW on GC data 
