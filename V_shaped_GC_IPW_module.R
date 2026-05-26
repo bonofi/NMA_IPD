@@ -13,7 +13,6 @@
 # rawbal1_attipdad4 <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1_attipdad4.rds")
 # rawbal1_attad4 <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1_attad4.rds")
 
-
 ######################################## STRATEGY: run GC on optimal settings first, then run IPW on GC data 
 
 system.time(
@@ -321,35 +320,6 @@ for (i in names(inconsistency))
 
 gc()
 
-res1_attipdad4 <- lapply(
-  names(inconsistency),
-  function(i) lapply(
-    names(ssizes), 
-    function(j)
-      lapply(
-        c(
-          "GC-IPW"
-        ),
-        function(x)
-          rawbal1_attipdad4[[i]][[j]][[x]]$est   
-      ) |>
-      dplyr::bind_rows()|>
-      tibble::as_tibble() |> 
-      tibble::add_column(
-        inconsistency = i,
-        samplesize = j
-      )
-  )
-) |> 
-  dplyr::bind_rows() |> 
-  dplyr::mutate(
-    samplesize = factor(samplesize, 
-                        levels = c("small", "medium", "large")),
-    inconsistency = factor(inconsistency,
-                           levels = c("none", "mild", "high")),
-    evidence = "GC-IPW"
-  ) 
-
 
 #### RUN GC-IPW AD (reference study is nr 1) all studies have AD format
 
@@ -397,6 +367,36 @@ for (i in names(inconsistency))
 gc()
 
 
+res1_attipdad4 <- lapply(
+  names(inconsistency),
+  function(i) lapply(
+    names(ssizes), 
+    function(j)
+      lapply(
+        c(
+          "GC-IPW"
+        ),
+        function(x)
+          rawbal1_attipdad4[[i]][[j]][[x]]$est   
+      ) |>
+      dplyr::bind_rows()|>
+      tibble::as_tibble() |> 
+      tibble::add_column(
+        inconsistency = i,
+        samplesize = j
+      )
+  )
+) |> 
+  dplyr::bind_rows() |> 
+  dplyr::mutate(
+    samplesize = factor(samplesize, 
+                        levels = c("small", "medium", "large")),
+    inconsistency = factor(inconsistency,
+                           levels = c("none", "mild", "high")),
+    evidence = "GC-IPW-4"
+  ) 
+
+
 res1_attad4 <- lapply(
   names(inconsistency),
   function(i) lapply(
@@ -423,11 +423,10 @@ res1_attad4 <- lapply(
                         levels = c("small", "medium", "large")),
     inconsistency = factor(inconsistency,
                            levels = c("none", "mild", "high")),
-    evidence = "GC-IPW"
+    evidence = "GC-IPW-4"
   ) 
 
 
-checkGCipwBoot(rawbal1_attad)
 
 #####################
 
@@ -438,7 +437,9 @@ allres1b <- res1 |>
     res1_attad |> 
       mutate(
         level = "AGD"
-      )
+      ),
+    res1_attipdad4,
+    res1_attad4
   )
 
 
