@@ -445,16 +445,20 @@ allres1b <- res1 |>
 
 
 allres1b |> 
-  dplyr::rename(Method = evidence) |> 
   dplyr::filter(evidence2 == "Balanced" & estimand == "ATT") |> 
+  dplyr::rowwise() |> 
+  dplyr::mutate(Method = paste(evidence, level, sep = "-")) |> 
+  dplyr::ungroup() |> 
   ggplot(
     aes(x = samplesize, y = estimate, 
         colour = contrast, group = contrast, shape = Method) 
   ) +
   geom_line(
     data = allres1b |> 
-      dplyr::rename(Method = evidence) |>
-      dplyr::filter(Method == "IPW" & evidence2 == "Balanced" & estimand == "ATT")
+      dplyr::rowwise() |> 
+      dplyr::mutate(Method = paste(evidence, level, sep = "-")) |> 
+      dplyr::ungroup() |>
+      dplyr::filter(Method == "IPW-IPD" & evidence2 == "Balanced" & estimand == "ATT")
   ) +
   geom_point(size = 2) +
   facet_wrap(vars(inconsistency)) +
