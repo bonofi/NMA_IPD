@@ -433,11 +433,11 @@ res1_attad4 <- lapply(
 allres1b <- res1 |> 
   dplyr::bind_rows(
     res1bbal,
-    res1_attipdad,
-    res1_attad |> 
-      mutate(
-        level = "AGD"
-      ),
+    # res1_attipdad,
+    # res1_attad |> 
+    #   mutate(
+    #     level = "AGD"
+    #   ),
     res1_attipdad4,
     res1_attad4
   )
