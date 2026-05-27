@@ -3,7 +3,7 @@
 ref <- res1dat |> filter(inconsistency == "high" & samplesize == "large")
 dat <- rawGC4$high$large$pseud[[1]]
 
-dat <- rawGCtest3$pseud[[1]]
+dat <- rawGCtest3b$pseud[[1]]
 
 provaref <- ipw_balance(
   ipd_network = ref,
@@ -12,6 +12,7 @@ provaref <- ipw_balance(
   stop_rule = "es.mean"
 )
 
+# 
 prova <- ipw_balance(
   ipd_network = dat ,#|> filter(study != "5"),
   model_formula = as.formula(study ~ x + V1 + V2),
@@ -40,7 +41,7 @@ prova2 <- ipw_balance(
 
 system.time(
   rawGCtest3 <- do_gcipdr(
-    ipd_network = dat,
+    ipd_network = ref,
     boot_iter = 10,
     method = "4",
     SI_k = 60000,
@@ -48,6 +49,28 @@ system.time(
     seed = 30697,
     cores = 6,
     drop_ref_V = "V2"
+  )
+)
+#########
+
+
+
+
+####### try to model trt*V interaction in GC
+
+system.time(
+  rawGCtest3b <- do_gcipdr(
+    ipd_network = ref |> 
+      rowwise() |> 
+      # must model with complementary level of V to avoid collinearity
+      mutate(inter = trt*V1) |> 
+      ungroup(),
+    boot_iter = 10,
+    method = "4",
+    SI_k = 60000,
+    only_SI = TRUE,
+    seed = 30697,
+    cores = 6
   )
 )
 #########
