@@ -3,7 +3,7 @@
 ref <- res1dat |> filter(inconsistency == "high" & samplesize == "large")
 dat <- rawGC4$high$large$pseud[[1]]
 
-dat <- rawGCtest3b$pseud[[1]]
+dat <- rawGCtest3b$pseud[[5]]
 
 provaref <- ipw_balance(
   ipd_network = ref,
