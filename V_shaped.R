@@ -435,7 +435,8 @@ system.time(
                 ipd_network = df2,
                 model_formula = as.formula(study ~ x + V1 + V2),
                 estimand = "ATT",
-                stop_rule = "es.mean"
+                stop_rule = "es.mean",
+                print_diagnostics = FALSE
               )
               # ,
               # "ML-NMR" = multinma(
