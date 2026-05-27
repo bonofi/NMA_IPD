@@ -3,7 +3,7 @@
 ref <- res1dat |> filter(inconsistency == "high" & samplesize == "large")
 dat <- rawGC4$high$large$pseud[[1]]
 
-dat <- rawGCtest3b$pseud[[5]]
+dat <- rawGCtest2b$pseud[[5]]
 
 provaref <- ipw_balance(
   ipd_network = ref,
@@ -56,23 +56,67 @@ system.time(
 
 
 
-####### try to model trt*V interaction in GC
+####### try to model trt*V interaction in GC --> WRONG!!!
 
 system.time(
-  rawGCtest3b <- do_gcipdr(
+  rawGCtest2b <- do_gcipdr(
     ipd_network = ref |> 
       rowwise() |> 
       # must model with complementary level of V to avoid collinearity
       mutate(inter = trt*V1) |> 
       ungroup(),
     boot_iter = 10,
-    method = "4",
+    method = "3",
     SI_k = 60000,
     only_SI = TRUE,
     seed = 30697,
     cores = 6
   )
 )
+#########
+
+
+####### try to model trt*V interaction in GC avoid redundancy
+
+system.time(
+  rawGCtest2b <- do_gcipdr(
+    ipd_network = ref |> 
+      rowwise() |> 
+      # must model with complementary level of V to avoid collinearity
+      mutate(inter = trt*V1) |> 
+      ungroup(),
+    boot_iter = 10,
+    method = "3",
+    SI_k = 60000,
+    only_SI = TRUE,
+    seed = 30697,
+    cores = 6,
+    interaction_only = TRUE
+  )
+)
+
+
+rawGCtest2b$pseud <- lapply(
+  rawGCtest2b$pseud,
+  function(x) 
+    x |> 
+    rowwise() |> 
+    mutate(
+      trt = case_when(
+        inter == 1 ~ 1,
+        inter == 0 ~ rbinom(1,1,0.5)
+      ),
+      V1 = ifelse(inter == 1, 1, 1-trt),
+      V2 = 1-V1
+    ) |>
+    ungroup() |> 
+    left_join(
+      ref |> 
+        distinct(study, trt, trt_name),
+      by = c("study", "trt")
+    )
+)
+
 #########
 
 

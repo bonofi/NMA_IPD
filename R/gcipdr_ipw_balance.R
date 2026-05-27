@@ -216,8 +216,8 @@ do_gcipdr <- function(
     only_SI = FALSE,
     seed = 49632,
     cores = detectCores() - 1, # ncores to use,
-    drop_ref_V = "V1" # drop reference level of moderator variable -> keeping in increases instability due to perfect correlation
-
+    drop_ref_V = "V1", # drop reference level of moderator variable -> keeping in increases instability due to perfect correlation
+    interaction_only = FALSE # if TRUE, keeps only "inter" = trt*V and dropr trt and V
 )
 {
   
@@ -225,6 +225,10 @@ do_gcipdr <- function(
   
   trt_map <- ipd_network |> 
     dplyr::distinct(study, trt, trt_name)
+  
+  if (interaction_only)
+    ipd_network <- ipd_network |> 
+    dplyr::select(-trt, -dplyr::starts_with("V"))
   
   # prep data
   
@@ -234,7 +238,8 @@ do_gcipdr <- function(
     function(x)
       x |> 
       dplyr::select(
-        y, trt, x, dplyr::starts_with("v"), 
+        y, dplyr::starts_with("trt"), x, 
+        dplyr::starts_with("v"), 
         dplyr::starts_with("inter")  # automatically loads any interaction term (by convention with prefix "inter")
       ) |> 
       dplyr::select(where(is.numeric)) |> 
@@ -332,15 +337,22 @@ do_gcipdr <- function(
                           j, "-", 
                           1:dim(raw[[j]]$similar.data[[h]])[1]),
                         .before = 1
-                      ) |> 
-                      # re-merge trt LABEL by study
-                      dplyr::left_join(
-                        trt_map |> 
-                          dplyr::filter(
-                            study == j
-                          ),
-                        by = c("study", "trt")
-                      ) %>%
+                      ) %>% 
+                      {
+                        if (interaction_only)
+                          .
+                        else
+                          # re-merge trt LABEL by study
+                          dplyr::left_join(
+                            .,
+                            trt_map |> 
+                              dplyr::filter(
+                                study == j
+                              ),
+                            by = c("study", "trt")
+                          )
+                          
+                      } %>%
                       # must resort to colSums because rowwise is extremely slow !!!
                       dplyr::mutate(
                         # collect all V strata that are not the reference one
