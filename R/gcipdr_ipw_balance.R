@@ -20,7 +20,8 @@ gcipdr_ipw_balance <- function(
     only_SI = FALSE,
     seed = 49632,
     save_raw = TRUE,
-    cores = detectCores() - 1 # ncores to use
+    cores = detectCores() - 1, # ncores to use
+    drop_ref_V = "V1"
     
 ){
   
@@ -50,7 +51,8 @@ gcipdr_ipw_balance <- function(
       SI_k = SI_k,
       only_SI = only_SI,
       seed = seed,
-      cores = cores
+      cores = cores,
+      drop_ref_V = drop_ref_V
     )
     
     gc()
@@ -213,7 +215,8 @@ do_gcipdr <- function(
     SI_k = 10000,
     only_SI = FALSE,
     seed = 49632,
-    cores = detectCores() - 1 # ncores to use
+    cores = detectCores() - 1, # ncores to use,
+    drop_ref_V = "V1" # drop reference level of moderator variable -> keeping in increases instability due to perfect correlation
 )
 {
   
@@ -235,7 +238,7 @@ do_gcipdr <- function(
       dplyr::select(where(is.numeric)) |> 
       # drop redundant reference stratum level because 
       # it might cause trouble during optimization (corr values close to boundary)
-      dplyr::select(!any_of("V1"))
+      dplyr::select(!any_of(drop_ref_V))
   )
   
   # generate pseudodata. Output: list with boot repetition by study. Need to reorganize as list of pooled-by-study data repetitions  
@@ -348,7 +351,10 @@ do_gcipdr <- function(
                             dplyr::select(
                               starts_with("V")),
                           na.rm = TRUE)) |>
-                      dplyr::mutate(V1 = 1-notV1) |>
+                      # reintroduce complement V level
+                      dplyr::mutate(
+                        "{drop_ref_V}" := 1-notV1
+                        ) |>
                       # drop notV1
                       dplyr::select(-notV1)
                     
