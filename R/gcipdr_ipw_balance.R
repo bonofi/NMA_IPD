@@ -217,6 +217,7 @@ do_gcipdr <- function(
     seed = 49632,
     cores = detectCores() - 1, # ncores to use,
     drop_ref_V = "V1" # drop reference level of moderator variable -> keeping in increases instability due to perfect correlation
+
 )
 {
   
@@ -233,12 +234,13 @@ do_gcipdr <- function(
     function(x)
       x |> 
       dplyr::select(
-        y, trt, x, starts_with("v")
+        y, trt, x, dplyr::starts_with("v"), 
+        dplyr::starts_with("inter")  # automatically loads any interaction term (by convention with prefix "inter")
       ) |> 
       dplyr::select(where(is.numeric)) |> 
       # drop redundant reference stratum level because 
       # it might cause trouble during optimization (corr values close to boundary)
-      dplyr::select(!any_of(drop_ref_V))
+      dplyr::select(!any_of(drop_ref_V)) 
   )
   
   # generate pseudodata. Output: list with boot repetition by study. Need to reorganize as list of pooled-by-study data repetitions  
