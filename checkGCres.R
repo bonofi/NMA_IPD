@@ -35,6 +35,39 @@ prova2 <- ipw_balance(
 
 
 
+####### rerun GC at different subgroup V level 
+
+system.time(
+  rawGCtestV1 <- do_gcipdr(
+    ipd_network = ref |> 
+      filter(V2 == 1) |> 
+      select(-starts_with("V")),
+    boot_iter = 10,
+    method = "3",
+    SI_k = 60000,
+    only_SI = TRUE,
+    seed = 30697,
+    cores = 6
+  )
+)
+
+
+system.time(
+  rawGCtestV0 <- do_gcipdr(
+    ipd_network = ref |> 
+      filter(V2 == 0) |> 
+      select(-starts_with("V")),
+    boot_iter = 10,
+    method = "3",
+    SI_k = 60000,
+    only_SI = TRUE,
+    seed = 30697,
+    cores = 6
+  )
+)
+#########
+
+
 
 
 ####### rerun GC with different V level 
