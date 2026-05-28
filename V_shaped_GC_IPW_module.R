@@ -4,10 +4,6 @@
 
 # rawGC3 <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawGC3.rds")
 # rawGC4 <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawGC4.rds")
-# rawbal1c4 <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1c4.rds")
-# rawbal1d4 <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1d4.rds")
-# rawbal1c <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1c.rds")
-# rawbal1d <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1d.rds")
 # rawbal1_attipdad <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1_attipdad.rds")
 # rawbal1_attad <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1_attad.rds")
 # rawbal1_attipdad4 <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1_attipdad4.rds")
