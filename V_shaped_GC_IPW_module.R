@@ -393,7 +393,7 @@ res1_attipdad4 <- lapply(
                         levels = c("small", "medium", "large")),
     inconsistency = factor(inconsistency,
                            levels = c("none", "mild", "high")),
-    evidence = "GC-IPW-4"
+    evidence = "GC-IPW"
   ) 
 
 
@@ -423,7 +423,7 @@ res1_attad4 <- lapply(
                         levels = c("small", "medium", "large")),
     inconsistency = factor(inconsistency,
                            levels = c("none", "mild", "high")),
-    evidence = "GC-IPW-4"
+    evidence = "GC-IPW"
   ) 
 
 
@@ -474,8 +474,7 @@ allres1b |>
     x = "Sample size", 
     title = "ATT estimation in a V-shaped treatment network for increasing inconsistency levels (Nr of studies: 5) after balancing", 
     caption = paste0(
-      "Diamonds: IMT for large N; Dots: NMA (", 
-      unique(na.omit(res1bbal$model)),")"
+      "Diamonds: IMT for large N"
     )
   ) 
 
