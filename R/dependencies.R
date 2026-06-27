@@ -37,3 +37,5 @@ library(carrier)
 library(tictoc)
 library(JohnsonDistribution)
 library(mirai)
+library(synthpop)
+
