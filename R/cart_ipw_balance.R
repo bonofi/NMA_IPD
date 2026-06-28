@@ -15,21 +15,20 @@ cart_ipw_balance <- function(
   
   browser()
   
-  future::plan(multisession, workers = cores)
   
   tictoc::tic()
   # synthetic data using original IPD 
   
   raw <- ipd_network |> 
     dplyr::select(
-      y, study, V, trt_name, x) |> 
+      y, study, V1, trt_name, x) |> 
  synthpop::syn.strata(
         strata = "study",
         m=boot_iter, 
         seed = seed,
         minstratumsize = 10
         )
-    )
+    
   
   tictoc::toc()
   
@@ -41,5 +40,5 @@ cart_ipw_balance <- function(
 
 cart_ipw_balance(
   res1dat |> 
-      filter(samplesize == "small" & inconsistency == "high")
+      filter(samplesize == "medium" & inconsistency == "high")
 )
