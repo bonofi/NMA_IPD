@@ -21,7 +21,7 @@ cart_ipw_balance <- function(
   
   raw <- ipd_network |> 
     dplyr::select(
-      y, study, V1, trt_name, x) |> 
+      y, study, V, trt_name, x) |> 
  synthpop::syn.strata(
         strata = "study",
         m=boot_iter, 
@@ -32,6 +32,13 @@ cart_ipw_balance <- function(
   
   tictoc::toc()
   
+  
+  prova <-  synthpop::syn(ipd_network |> 
+                            
+                            dplyr::filter(study == "1") |> 
+                            select(y, x, V1, trt) ,
+                          
+                          m= 1)
   
   
 }
