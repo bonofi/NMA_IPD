@@ -7,14 +7,14 @@
 cart_ipw_balance <- function(
     ipd_network,
     boot_iter = 100,
-    seed = 7385,
-    cores = 5
+    seed = 7385
     
 ){
   
   
   browser()
   
+ 
   
   tictoc::tic()
   # synthetic data using original IPD 
@@ -22,23 +22,19 @@ cart_ipw_balance <- function(
   raw <- ipd_network |> 
     dplyr::select(
       y, study, V, trt_name, x) |> 
- synthpop::syn.strata(
-        strata = "study",
-        m=boot_iter, 
-        seed = seed,
-        minstratumsize = 10
-        )
-    
+    synthpop::syn.strata(
+      strata = "study",
+      method = "parametric",  # alternative "cart"
+      m=boot_iter, 
+      seed = seed,
+      minstratumsize = 10,
+      ver
+    )
+  
   
   tictoc::toc()
   
   
-  prova <-  synthpop::syn(ipd_network |> 
-                            
-                            dplyr::filter(study == "1") |> 
-                            select(y, x, V1, trt) ,
-                          
-                          m= 1)
   
   
 }
