@@ -18,15 +18,27 @@ cart_ipw_balance <- function(
     
 ){
   
+
   
-  browser()
+  datalevel <- match.arg(datalevel)
+  estimand <- match.arg(estimand)
   
+  
+  studyid <- pickst <- unique(ipd_network$study)
+  refstudy <- NULL
+  
+  # avoid simulation of reference study if pseudodata generation is internal
+  if (datalevel == "ipd-agd")
+  {
+    pickst <- setdiff(studyid, ref_study)
+    refstudy <- ipd_network |> 
+      dplyr::filter(study == ref_study)
+  }
  
-  
-  tictoc::tic()
   # synthetic data using original IPD 
   
   raw <- ipd_network |> 
+    dplyr::filter(study %in% pickst) |> 
     dplyr::select(
       y, study, V, trt_name, x) |> 
     synthpop::syn.strata(
@@ -34,16 +46,12 @@ cart_ipw_balance <- function(
       method = "parametric",  # alternative "cart"
       m=boot_iter, 
       seed = seed,
-      minstratumsize = 10,
-      ver
+      minstratumsize = 10
     )
   
+ # synthpop::summary.synds(raw)
   
-  tictoc::toc()
-
-  synthpop::summary.synds(raw)
-  
-  
+  browser()
   ## run IPW on synthetic data
 
   mirai::daemons(cores)
@@ -59,7 +67,10 @@ cart_ipw_balance <- function(
                          x
                        )
                        
-                     
+                     colnames(out) <- stringr::str_replace_all(
+                       colnames(out),
+                       "Vlevel_", "V")
+                     out
                    }
   ) |> 
     purrr::map(
@@ -112,6 +123,89 @@ cart_ipw_balance <- function(
   mirai::daemons(0)
   
   gc()
+  
+  
+  # extract estimates and stack by boot iteration
+  cleanipw <- 1:length(rawipw) |> 
+    lapply(
+      function(i)
+        rawipw[[i]]$est |> 
+        tibble::add_column(bootIter = i, 
+                           .before = 1)
+      
+    ) |> 
+    dplyr::bind_rows()
+  
+  # extract extra info
+  extra <- data.frame(
+    model = NA,
+    evidence = "GC-IPW",
+    estimand = estimand,
+    level = toupper(datalevel),
+    evidence2 = "Balanced"
+  ) 
+  
+  # calculate summary over boot iteration
+  
+  summipw <- cleanipw |> 
+    dplyr::select(-bootIter) |> 
+    dplyr::group_by(
+      contrast
+    ) |> 
+    dplyr::summarise(
+      dplyr::across(
+        # here names to be kept, e.g., estimate, lower, upper, etc ..
+        .cols = dplyr::where(is.numeric),
+        .fns = list(
+          Mean = ~ mean(.x, na.rm = TRUE),
+          SE = ~ sd(.x, na.rm = TRUE)
+          # more ?
+        ),
+        .names = "{.col}_{.fn}"  # glue-style template
+      )
+    ) |> 
+    dplyr::ungroup()
+  
+  meanest <- summipw |> 
+    dplyr::select(
+      contrast,
+      dplyr::ends_with("_Mean")
+    )
+  pickm <- grepl("_Mean", 
+                 names(meanest))
+  names(meanest)[pickm] <- stringr::str_replace_all(
+    names(meanest)[pickm], "_Mean", "")
+  
+  estse <- summipw |> 
+    dplyr::select(
+      contrast,
+      dplyr::ends_with("_SE")
+    )
+  picks <- grepl("_SE", 
+                 names(estse))
+  names(estse)[picks] <- stringr::str_replace_all(
+    names(estse)[picks], "_SE", "")
+  
+  
+  return(
+    list(
+      corr_diagnostics_pseudodat = pseudodata$raw |> 
+        purrr::map(
+          \(obj) obj$is.data.similar$lower.triangular.Rx
+        ),
+      rawest = {
+        if (save_raw)
+          cleanipw
+        else 
+          NULL
+      },
+      est_se = estse |> 
+        cbind(extra),
+      est = meanest |> 
+        cbind(extra)
+    )
+  )
+  
   
   
 }
