@@ -18,11 +18,9 @@ cart_ipw_balance <- function(
     
 ){
   
-
   
   datalevel <- match.arg(datalevel)
   estimand <- match.arg(estimand)
-  
   
   studyid <- pickst <- unique(ipd_network$study)
   refstudy <- NULL
@@ -58,15 +56,15 @@ cart_ipw_balance <- function(
   
   # run IPW on pseudodata --> raw result
   tictoc::tic()
+  
   rawipw <- lapply(raw$syn,
                    function(x)
                    {
-                     out <- model.matrix(~ V - 1, data = x) |> 
+                     out <- model.matrix(~V-1, data = x) |> 
                        as.data.frame() |> 
                        dplyr::bind_cols(
                          x
                        )
-                       
                      colnames(out) <- stringr::str_replace_all(
                        colnames(out),
                        "Vlevel_", "V")
@@ -139,7 +137,7 @@ cart_ipw_balance <- function(
   # extract extra info
   extra <- data.frame(
     model = NA,
-    evidence = "GC-IPW",
+    evidence = "CART-IPW",
     estimand = estimand,
     level = toupper(datalevel),
     evidence2 = "Balanced"
