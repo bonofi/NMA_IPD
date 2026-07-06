@@ -203,10 +203,7 @@ cart_ipw_balance <- function(
   
   return(
     list(
-      corr_diagnostics_pseudodat = pseudodata$raw |> 
-        purrr::map(
-          \(obj) obj$is.data.similar$lower.triangular.Rx
-        ),
+      corr_diagnostics_pseudodat = NULL,
       rawest = {
         if (save_raw)
           cleanipw
