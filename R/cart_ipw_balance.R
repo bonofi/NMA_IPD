@@ -65,8 +65,22 @@ cart_ipw_balance <- function(
                      out <- model.matrix(~V-1, data = x) |> 
                        as.data.frame() |> 
                        dplyr::bind_cols(
-                         x
+                         x |> 
+                           dplyr::mutate(
+                             rownum = row_number()
+                           ) |> 
+                           dplyr::rowwise() |> 
+                           dplyr::mutate(
+                             # need usubjid for compatibility with other utilities
+                             usubjid = paste0(
+                               study, "-", 
+                               rownum),
+                             .before = 1
+                           ) |> 
+                           dplyr::ungroup() |> 
+                           dplyr::select(-rownum)
                        )
+                     
                      colnames(out) <- stringr::str_replace_all(
                        colnames(out),
                        "Vlevel_", "V")
