@@ -47,6 +47,8 @@ cart_ipw_balance <- function(
       minstratumsize = 10
     )
   
+  # todo: must iclude subjid!!
+  
  # synthpop::summary.synds(raw)
   
   browser()
