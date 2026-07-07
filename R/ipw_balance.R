@@ -167,7 +167,6 @@ ipw_balance <- function(ipd_network,
     dplyr::group_by(stop.method, trt_name) |> 
     dplyr::summarise(ATE = weighted.mean(weight_eff, n))
   
-  browser()
   ####  RUN IPWed MODEL ##############
   # weighted model for average effect
   mod <- lm(y~trt_name, data = data, weights = ps_weight)

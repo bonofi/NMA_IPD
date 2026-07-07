@@ -14,7 +14,8 @@ cart_ipw_balance <- function(
     n_trees = 5000,
     boot_iter = 100,
     seed = 7385,
-    cores = 5
+    cores = 5,
+    save_raw = FALSE
     
 ){
   
@@ -51,7 +52,6 @@ cart_ipw_balance <- function(
   
  # synthpop::summary.synds(raw)
   
-  browser()
   ## run IPW on synthetic data
 
   mirai::daemons(cores)
@@ -66,11 +66,9 @@ cart_ipw_balance <- function(
                        as.data.frame() |> 
                        dplyr::bind_cols(
                          x |> 
+                           dplyr::group_by(study) |> 
                            dplyr::mutate(
-                             rownum = row_number()
-                           ) |> 
-                           dplyr::rowwise() |> 
-                           dplyr::mutate(
+                             rownum = row_number(),
                              # need usubjid for compatibility with other utilities
                              usubjid = paste0(
                                study, "-", 
