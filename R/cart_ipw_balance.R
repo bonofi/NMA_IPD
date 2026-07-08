@@ -3,7 +3,6 @@
 #' 
 
 
-
 cart_ipw_balance <- function(
     ipd_network,
     modelformula = as.formula(study ~ x + V1 + V2),
