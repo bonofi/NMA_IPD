@@ -220,7 +220,7 @@ cart_ipw_balance <- function(
 
 
 
-cart_ipw_balance(
+test <- cart_ipw_balance(
   res1dat |> 
       filter(samplesize == "medium" & inconsistency == "high")
 )
