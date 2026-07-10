@@ -33,6 +33,7 @@ cart_ipw_balance <- function(
       dplyr::filter(study == ref_study)
   }
  
+  browser()
   # synthetic data using original IPD 
   
   raw <- ipd_network |> 
@@ -41,7 +42,7 @@ cart_ipw_balance <- function(
       y, study, V, trt_name, x) |> 
     synthpop::syn.strata(
       strata = "study",
-      method = "parametric",  # alternative "cart"
+      method = "ranger",  # alternative "cart"
       m=boot_iter, 
       seed = seed,
       minstratumsize = 10
