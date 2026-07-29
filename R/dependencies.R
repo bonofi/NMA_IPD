@@ -25,7 +25,7 @@ library(twang)
 
 #library(optweight)
 
-library(devtools)
+#library(devtools)
 library(remotes)
 
 pak::pak("bonorico/gcipdr")
