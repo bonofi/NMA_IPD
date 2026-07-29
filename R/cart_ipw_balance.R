@@ -52,13 +52,13 @@ cart_ipw_balance <- function(
   # todo: must iclude subjid!!
   
  # synthpop::summary.synds(raw)
- synthpop::compare(
-   raw,
-   ipd_network |> 
-     dplyr::filter(study %in% pickst) |> 
-     dplyr::select(
-       y, study, V, trt_name, x)
-   )
+ # synthpop::compare(
+ #   raw,
+ #   ipd_network |> 
+ #     dplyr::filter(study %in% pickst) |> 
+ #     dplyr::select(
+ #       y, study, V, trt_name, x)
+ #   )
   
   ## run IPW on synthetic data
 
