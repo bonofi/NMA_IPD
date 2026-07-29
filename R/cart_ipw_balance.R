@@ -42,7 +42,8 @@ cart_ipw_balance <- function(
       y, study, V, trt_name, x) |> 
     synthpop::syn.strata(
       strata = "study",
-      method = "ranger",  # alternative "cart"
+      visit.sequence = c(3, 5, 4, 1, 2),
+      method = c("cart", "", "cart", "sample", "cart" ), #c("normrank", "", "cart", "sample", "cubertnorm" ),  
       m=boot_iter, 
       seed = seed,
       minstratumsize = 10
@@ -51,6 +52,13 @@ cart_ipw_balance <- function(
   # todo: must iclude subjid!!
   
  # synthpop::summary.synds(raw)
+ synthpop::compare(
+   raw,
+   ipd_network |> 
+     dplyr::filter(study %in% pickst) |> 
+     dplyr::select(
+       y, study, V, trt_name, x)
+   )
   
   ## run IPW on synthetic data
 
