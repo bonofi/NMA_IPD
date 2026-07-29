@@ -7,6 +7,7 @@ cart_ipw_balance <- function(
     ipd_network,
     modelformula = as.formula(study ~ x + V1 + V2),
     datalevel = c("ipd-agd", "agd"), # type of data available: mixed ipd-agd, only agd ...
+    method = c("normrank", "", "cart", "sample", "cubertnorm" ),
     estimand = c("ATT", "ATE"),
     ref_study = "1",   # for ATT estimation
     stop_rule = "ks.mean",   # can be a vector
@@ -43,7 +44,7 @@ cart_ipw_balance <- function(
     synthpop::syn.strata(
       strata = "study",
       visit.sequence = c(3, 5, 4, 1, 2),
-      method = c("cart", "", "cart", "sample", "cart" ), #c("normrank", "", "cart", "sample", "cubertnorm" ),  
+      method = method, #c("cart", "", "cart", "sample", "cart" ), #c("normrank", "", "cart", "sample", "cubertnorm" ),  
       m=boot_iter, 
       seed = seed,
       minstratumsize = 10
