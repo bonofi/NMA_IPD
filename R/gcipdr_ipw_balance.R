@@ -218,6 +218,7 @@ do_gcipdr <- function(
     cores = detectCores() - 1, # ncores to use,
     drop_ref_V = "V1", # drop reference level of moderator variable -> keeping in increases instability due to perfect correlation
     interaction_only = FALSE # if TRUE, keeps only "inter" = trt*V and dropr trt and V
+
 )
 {
   
@@ -287,7 +288,7 @@ do_gcipdr <- function(
   )
   
   # if some fails, rerun with MC integration
-  if (length(fails) > 0){
+  if (length(fails) > 0 & stochastic.integration == FALSE){
     
     set.seed(seed, "L'Ecuyer") 
     
