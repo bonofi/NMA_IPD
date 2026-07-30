@@ -7,7 +7,8 @@ cart_ipw_balance <- function(
     ipd_network,
     modelformula = as.formula(study ~ x + V1 + V2),
     datalevel = c("ipd-agd", "agd"), # type of data available: mixed ipd-agd, only agd ...
-    method = c("normrank", "", "cart", "sample", "cubertnorm" ),
+    method = c("normrank", "", "ctree", "sample", "cubertnorm" ),
+    by_moderator = FALSE,   # if TRUE, it stratifies data synthesis by moderator variable ...
     estimand = c("ATT", "ATE"),
     ref_study = "1",   # for ATT estimation
     stop_rule = "ks.mean",   # can be a vector
@@ -34,7 +35,12 @@ cart_ipw_balance <- function(
       dplyr::filter(study == ref_study)
   }
  
-  browser()
+
+  if (by_moderator)
+    strata <- c("study", "V")
+  else
+    strata <- "study"
+  
   # synthetic data using original IPD 
   
   raw <- ipd_network |> 
@@ -42,7 +48,7 @@ cart_ipw_balance <- function(
     dplyr::select(
       y, study, V, trt_name, x) |> 
     synthpop::syn.strata(
-      strata = "study",
+      strata = strata,
       visit.sequence = c(3, 5, 4, 1, 2),
       method = method, #c("cart", "", "cart", "sample", "cart" ), #c("normrank", "", "cart", "sample", "cubertnorm" ),  
       m=boot_iter, 
@@ -229,8 +235,19 @@ cart_ipw_balance <- function(
 }
 
 
-
-test <- cart_ipw_balance(
-  res1dat |> 
-      filter(samplesize == "medium" & inconsistency == "high")
-)
+# 
+# test <- cart_ipw_balance(
+#   res1dat |> 
+#       filter(samplesize == "medium" & inconsistency == "high")
+# )
+# 
+# gc()
+# 
+# 
+# test <- cart_ipw_balance(
+#   res1dat |>
+#     filter(samplesize == "medium" & inconsistency == "high"),
+#   method = "parametric", by_moderator = TRUE
+# )
+# 
+# gc()

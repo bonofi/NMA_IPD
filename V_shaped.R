@@ -9,6 +9,8 @@ source("./R/multinma.R")
 source("./R/gcipdr_ipw_balance.R")
 source("./R/checkGCcorr.R")
 source("./R/checkGCipwBoot.R")
+source("./R/cart_ipw_balance.R")
+
 
 # GENERAL SETTINGS
 ##### IMT ####
