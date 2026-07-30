@@ -70,7 +70,7 @@ rawGC3 <- names(rawGC3_strata[[1]]) |>
                   V1 = 1, V2 = 0
                 ) |> 
                 dplyr::bind_rows(
-                  rawGC3_strata[["level_1"]][[i]][[j]][[b]] |> 
+                  rawGC3_strata[["level_2"]][[i]][[j]][[b]] |> 
                     dplyr::select(!starts_with("V")) |> 
                     tibble::add_column(
                       V1 = 0, V2 = 1
