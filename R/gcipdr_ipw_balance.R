@@ -231,6 +231,12 @@ do_gcipdr <- function(
     ipd_network <- ipd_network |> 
     dplyr::select(-trt, -dplyr::starts_with("V"))
   
+  # empty data container in case GC fails
+  mockl <- rep(NA, dim(ipd_network)[2]) |> 
+    as.list()
+  names(mockl) <- colnames(ipd_network)
+  mockd <- as.data.frame(mockl)
+
   # prep data
   
   input <- lapply(
@@ -288,7 +294,7 @@ do_gcipdr <- function(
   )
   
   # if some fails, rerun with MC integration
-  if (length(fails) > 0 & stochastic.integration == FALSE){
+  if (length(fails) > 0 & only_SI == FALSE){
     
     set.seed(seed, "L'Ecuyer") 
     
@@ -326,53 +332,74 @@ do_gcipdr <- function(
                   
                   lapply(
                     names(raw), 
-                    function(j) ##  row-bind by study
+                    function(j){  ##  row-bind by study
                       
+                      if (
+                        class(
+                          raw[[j]]
+                        ) == "try-error"
+                      ) {
+                        
+                        message(paste0("NO DATA PRODUCED FOR STUDY: ", j))
+                        return(
+                          mockd |> 
+                            tibble::add_column(
+                              study = j,
+                              usubjid = paste0(j, "-1"),
+                              .before = 1
+                            ) |> 
+                            dplyr::mutate(
+                              "{drop_ref_V}" := NA
+                            )
+                        )
+                      }
+                        
                       as.data.frame(
                         raw[[j]]$similar.data[[h]]
                       ) |> 
-                      tibble::add_column(
-                        study = j,
-                        # need usubjid for compatibility with other utilities
-                        usubjid = paste0(
-                          j, "-", 
-                          1:dim(raw[[j]]$similar.data[[h]])[1]),
-                        .before = 1
-                      ) %>% 
-                      {
-                        if (interaction_only)
-                          .
-                        else
-                          # re-merge trt LABEL by study
-                          dplyr::left_join(
-                            .,
-                            trt_map |> 
-                              dplyr::filter(
-                                study == j
-                              ),
-                            by = c("study", "trt")
-                          )
+                        tibble::add_column(
+                          study = j,
+                          # need usubjid for compatibility with other utilities
+                          usubjid = paste0(
+                            j, "-", 
+                            1:dim(raw[[j]]$similar.data[[h]])[1]),
+                          .before = 1
+                        ) %>% 
+                        {
+                          if (interaction_only)
+                            .
+                          else
+                            # re-merge trt LABEL by study
+                            dplyr::left_join(
+                              .,
+                              trt_map |> 
+                                dplyr::filter(
+                                  study == j
+                                ),
+                              by = c("study", "trt")
+                            )
                           
-                      } %>%
-                      # must resort to colSums because rowwise is extremely slow !!!
-                      dplyr::mutate(
-                        # collect all V strata that are not the reference one
-                        notV1 = rowSums(
-                          . |> 
-                            tibble::add_column(
-                              # to be able to use rowSums in case of 1-dim V 
-                              V0 = NA 
-                            ) |> 
-                            dplyr::select(
-                              starts_with("V")),
-                          na.rm = TRUE)) |>
-                      # reintroduce complement V level
-                      dplyr::mutate(
-                        "{drop_ref_V}" := 1-notV1
+                        } %>%
+                        # must resort to colSums because rowwise is extremely slow !!!
+                        dplyr::mutate(
+                          # collect all V strata that are not the reference one
+                          notV1 = rowSums(
+                            . |> 
+                              tibble::add_column(
+                                # to be able to use rowSums in case of 1-dim V 
+                                V0 = NA 
+                              ) |> 
+                              dplyr::select(
+                                starts_with("V")),
+                            na.rm = TRUE)) |>
+                        # reintroduce complement V level
+                        dplyr::mutate(
+                          "{drop_ref_V}" := 1-notV1
                         ) |>
-                      # drop notV1
-                      dplyr::select(-notV1)
-                    
+                        # drop notV1
+                        dplyr::select(-notV1)
+                      
+                    } 
                   ) |> 
                   dplyr::bind_rows()
                 
