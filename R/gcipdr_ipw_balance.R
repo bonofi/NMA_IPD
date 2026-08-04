@@ -231,12 +231,6 @@ do_gcipdr <- function(
     ipd_network <- ipd_network |> 
     dplyr::select(-trt, -dplyr::starts_with("V"))
   
-  # empty data container in case GC fails
-  mockl <- rep(NA, dim(ipd_network)[2]) |> 
-    as.list()
-  names(mockl) <- colnames(ipd_network)
-  mockd <- as.data.frame(mockl)
-
   # prep data
   
   input <- lapply(
@@ -254,6 +248,15 @@ do_gcipdr <- function(
       # it might cause trouble during optimization (corr values close to boundary)
       dplyr::select(!any_of(drop_ref_V)) 
   )
+  
+  
+  
+  # empty data container in case GC fails
+  mockl <- rep(NA, dim(input[[1]])[2]) |> 
+    as.list()
+  names(mockl) <- colnames(input[[1]])
+  mockd <- as.data.frame(mockl)
+  
   
   # generate pseudodata. Output: list with boot repetition by study. Need to reorganize as list of pooled-by-study data repetitions  
   
@@ -356,7 +359,6 @@ do_gcipdr <- function(
     
   }
   
-  browser()
   
   # pool pseudodata by study
   
