@@ -293,31 +293,6 @@ do_gcipdr <- function(
     ) == "try-error"
   )
   
-  message(paste0("NO DATA PRODUCED FOR STUDY: ", 
-                 paste(names(raw)[fails],
-                       collapse = ", ")
-                 ))
-  
-  # pre-emptively set mock shells for failed instances
-  
-  raw[names(raw)[fails]] <- names(raw)[fails] |>
-    purrr::map(
-      \(j) list(
-        similar.data = lapply(
-          1:B, function(b)
-            mockd |> 
-            tibble::add_column(
-              study = j,
-              usubjid = paste0(j, "-1"),
-              .before = 1
-            ) |> 
-            dplyr::mutate(
-              "{drop_ref_V}" := NA
-            )
-        )
-      )
-    )
-    
   
   # if some fails, rerun with MC integration
   if (length(fails) > 0 & only_SI == FALSE){
@@ -350,6 +325,38 @@ do_gcipdr <- function(
   }
   
   future::plan(sequential)
+  
+  
+  # re-check if any GC failed with numerical integration only
+  fails <- which(
+    unlist(
+      lapply(raw, function(x) class(x))
+    ) == "try-error"
+  )
+  
+  if (length(fails) > 0)
+  {
+    
+    message(paste0("NO DATA PRODUCED FOR STUDY: ", 
+                   paste(names(raw)[fails],
+                         collapse = ", ")
+    ))
+    
+    # Set mock shells for failed instances
+    
+    raw[names(raw)[fails]] <- names(raw)[fails] |>
+      purrr::map(
+        \(j) list(
+          similar.data = lapply(
+            1:boot_iter, function(b)
+              mockd 
+          )
+        )
+      )
+    
+  }
+  
+  browser()
   
   # pool pseudodata by study
   
