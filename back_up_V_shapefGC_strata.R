@@ -16,7 +16,7 @@ system.time(
             )
             
             gc()
-            
+            B <- 300
             # stratify by moderator
             out <- lapply(
               sort(unique(df2$V)), 

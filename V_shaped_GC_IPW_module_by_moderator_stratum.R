@@ -6,7 +6,6 @@
 
 ## GC stratified by the mediator variable: proof of concept
 
-B <- 300
 ########################################################
 ########################################################
 
@@ -29,6 +28,7 @@ system.time(
             
             gc()
             
+            B <- 300
             # stratify by moderator
             out <- lapply(
               c("level_1", "level_2"), # replace with levels
