@@ -31,7 +31,7 @@ system.time(
             
             # stratify by moderator
             out <- lapply(
-              sort(unique(df2$V)), 
+              c("level_1", "level_2"), # replace with levels
               function(l) {
                 
                 gc()
@@ -49,49 +49,26 @@ system.time(
                 )
               }
             )
-            names(out) <- sort(unique(df2$V))
+            names(out) <- c("level_1", "level_2")
             
             # conjunct strata into one single data set
-            browser()
             
-            Vdat <- diag(length(unique(df2$V)))
-            rownames(Vdat) <- names(out)
-            colnames(Vdat) <- stringr::str_replace_all(
-              names(out), pattern = "level_", "V"
-            )
-            
-            pseud2 <- lapply(
+            pseud <- lapply(
               1:B,
               function(b)
-                lapply(
-                  names(out),
-                  function(l)
-                    out[[l]]$pseud[[b]] |> 
+                out$level_1$pseud[[b]] |> 
+                dplyr::select(
+                  !dplyr::starts_with("V")
+                ) |> 
+                tibble::add_column(V1 = 1, V2 = 0) |>  # replace with bang-bang and diagonal 0-1 V matrix ?
+                dplyr::bind_rows(
+                  out$level_2$pseud[[b]] |> 
                     dplyr::select(
                       !dplyr::starts_with("V")
                     ) |> 
-                    tibble::add_column(
-                      !!!as.list(
-                        Vdat[l, ]
-                      )
-                    )
+                    tibble::add_column(V1 = 0, V2 = 1)
                 ) |> 
-                dplyr::bind_rows() |> 
-                dplyr::arrange(study)
-              
-              # out$level_1$pseud[[b]] |> 
-              # dplyr::select(
-              #   !dplyr::starts_with("V")
-              # ) |> 
-              # tibble::add_column(V1 = 1, V2 = 0) |>  # replace with bang-bang and diagonal 0-1 V matrix ?
-              # dplyr::bind_rows(
-              #   out$level_2$pseud[[b]] |> 
-              #     dplyr::select(
-              #       !dplyr::starts_with("V")
-              #     ) |> 
-              #     tibble::add_column(V1 = 0, V2 = 1)
-              # ) |> 
-                # dplyr::arrange(study)
+                arrange(study)
             ) 
             
             return(
@@ -108,7 +85,7 @@ system.time(
 
 
 
-# DEPRECATED
+
 # ###############################################
 # system.time(
 #   
