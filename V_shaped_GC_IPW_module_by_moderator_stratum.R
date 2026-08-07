@@ -95,9 +95,9 @@ system.time(
 
 system.time(
   
-  rawbal1_attipdad <- names(rawGC) |> 
+  rawbal1_attipdad_strata <- names(rawGC3_strata) |> 
     purrr::map(
-      \(i) names(rawGC[[i]]) |> 
+      \(i) names(rawGC3_strata[[i]]) |> 
         purrr::map(
           \(j){
             
@@ -111,8 +111,8 @@ system.time(
             set.seed(2607)
             list(
               
-              "GC-IPW" = gcipdr_ipw_balance(
-                ipd_network = rawGC[[i]][[j]]$pseud[sample(1:300, 100)],
+              "GC-IPW-strata" = gcipdr_ipw_balance(
+                ipd_network = rawGC3_strata[[i]][[j]]$pseud[sample(1:300, 100)],
                 do_pseudodata = FALSE,
                 modelformula = as.formula(study ~ x + V1 + V2),
                 estimand = "ATT",
@@ -128,23 +128,23 @@ system.time(
     ) 
 )
 
-names(rawbal1_attipdad) <- names(inconsistency)
+names(rawbal1_attipdad_strata) <- names(inconsistency)
 for (i in names(inconsistency))
   names(rawbal1_attipdad[[i]]) <- names(ssizes) 
 
 gc()
 
-res1_attipdad <- lapply(
+rawbal1_attipdad_strata <- lapply(
   names(inconsistency),
   function(i) lapply(
     names(ssizes), 
     function(j)
       lapply(
         c(
-          "GC-IPW"
+          "GC-IPW-strata"
         ),
         function(x)
-          rawbal1_attipdad[[i]][[j]][[x]]$est   
+          rawbal1_attipdad_strata[[i]][[j]][[x]]$est   
       ) |>
       dplyr::bind_rows()|>
       tibble::as_tibble() |> 
@@ -160,6 +160,6 @@ res1_attipdad <- lapply(
                         levels = c("small", "medium", "large")),
     inconsistency = factor(inconsistency,
                            levels = c("none", "mild", "high")),
-    evidence = "GC-IPW"
+    evidence = "GC-IPW-strata"
   ) 
 
