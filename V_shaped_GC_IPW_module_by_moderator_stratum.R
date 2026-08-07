@@ -130,7 +130,7 @@ system.time(
 
 names(rawbal1_attipdad_strata) <- names(inconsistency)
 for (i in names(inconsistency))
-  names(rawbal1_attipdad[[i]]) <- names(ssizes) 
+  names(rawbal1_attipdad_strata[[i]]) <- names(ssizes) 
 
 gc()
 
