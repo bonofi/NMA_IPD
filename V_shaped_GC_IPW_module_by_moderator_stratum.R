@@ -134,7 +134,7 @@ for (i in names(inconsistency))
 
 gc()
 
-rawbal1_attipdad_strata <- lapply(
+rawbal1est_attipdad_strata <- lapply(
   names(inconsistency),
   function(i) lapply(
     names(ssizes), 
