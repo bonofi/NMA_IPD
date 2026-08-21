@@ -77,30 +77,36 @@ system.time(
 #  IPD-AGD: ref study Nr 1
 
 rawGC3_strata_ipd_agd <- lapply(
-  inconsistency,
+  names(inconsistency),
   function(i)
-    lapply(ssizes,
-           function(s)
-             lapply(
-               rawGC3_strata_agd[[i]][[s]]$pseud,
-               function(x)
-                 x |> 
-                 dplyr::filter(study != "1") |> 
-                 dplyr::bind_rows(
-                   res1dat |> 
-                     dplyr::filter(study == "1" & 
-                                     inconsistency == i & samplesize == s) |> 
-                     dplyr::select(
-                       usubjid, study, y, x, trt_name, V1, V2
-                     )
-                 )
-             )
-             
-           )
-
+    lapply(
+      names(ssizes),
+      function(s)
+        lapply(
+          rawGC3_strata_agd[[i]][[s]]$pseud,
+          function(x)
+            x |> 
+            dplyr::filter(study != "1") |> 
+            dplyr::bind_rows(
+              res1dat |> 
+                dplyr::filter(study == "1" & 
+                                inconsistency == i & samplesize == s) |> 
+                dplyr::select(
+                  usubjid, study, y, x, trt_name, V1, V2
+                )
+            )
+        )
+      
+    )
+  
 )
 
 
+names(rawGC3_strata_ipd_agd) <- names(inconsistency)
+
+for (i in names(inconsistency))
+  
+  names(rawGC3_strata_ipd_agd[[i]]) <- names(ssizes)
 
 
 # ###############################################
