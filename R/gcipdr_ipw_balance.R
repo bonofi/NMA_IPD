@@ -7,6 +7,7 @@
 gcipdr_ipw_balance <- function(
     ipd_network,
     do_pseudodata = TRUE, # if false ipd_network must be list of pseudodata 
+    pseudodata = NULL,
     modelformula = as.formula(study ~ x + V1 + V2),   
     datalevel = c("ipd-agd", "agd"), # type of data available: mixed ipd-agd, only agd ...
     estimand = c("ATT", "ATE"),
@@ -15,8 +16,8 @@ gcipdr_ipw_balance <- function(
     n_trees = 5000,
     method = c("3","4"),    # 3 = continuous Gamma, 4 = continuous Johnson
     boot_iter = 100,
-    NI_maxEval = 10000,
-    SI_k = 10000,
+    NI_maxEval = 10000, # or a named list "1" = 10000, "2" = 30000, ...
+    SI_k = 10000, # or a named list "1" = 10000, "2" = 30000, ...
     only_SI = FALSE,
     seed = 49632,
     save_raw = TRUE,
@@ -33,8 +34,8 @@ gcipdr_ipw_balance <- function(
   studyid <- pickst <- unique(ipd_network$study)
   refstudy <- NULL
   
-  # avoid simulation of reference study if pseudodata generation is internal
-  if (datalevel == "ipd-agd" & do_pseudodata)
+  # avoid simulation of reference study if scheme is ipd-agd
+  if (datalevel == "ipd-agd")
   {
     pickst <- setdiff(studyid, ref_study)
     refstudy <- ipd_network |> 
@@ -56,9 +57,24 @@ gcipdr_ipw_balance <- function(
     )
     
     gc()
-  
-  } else 
-    pseudodata <- list(pseud = ipd_network, raw = NULL)
+    
+  } else {
+    if (is.list(pseudodata))
+      pseudodata <- switch(
+        "agd" = list(pseud = pseudodata, raw = NULL),
+        "ipd-agd" = list(
+          # drop ref pseudostudy if ipd-agd
+          pseud = lapply(
+            pseudodata,
+            \(x) x |> 
+              dplyr::filter(study %in% pickst)
+          ), 
+          raw = NULL)  
+      )
+    else
+      stop("do_pseudodata = FALSE but no pseudodata list provided")
+  }
+    
   
 
   #future::plan(multisession, workers = cores)
@@ -211,13 +227,14 @@ do_gcipdr <- function(
     ipd_network,
     method = c("3","4"), # 3 = continuous Gamma, 4 = continuous Johnson
     boot_iter = 100,
-    NI_maxEval = 200,
-    SI_k = 10000,
+    NI_maxEval = 200, # or a named list "1" = 100, "2" = 300 ...
+    SI_k = 10000,  # or a named list "1" = 10000, "2" = 30000, ...
     only_SI = FALSE,
     seed = 49632,
     cores = detectCores() - 1, # ncores to use,
     drop_ref_V = "V1", # drop reference level of moderator variable -> keeping in increases instability due to perfect correlation
     interaction_only = FALSE # if TRUE, keeps only "inter" = trt*V and dropr trt and V
+  
 
 )
 {
@@ -232,7 +249,6 @@ do_gcipdr <- function(
     dplyr::select(-trt, -dplyr::starts_with("V"))
   
   # prep data
-  
   input <- lapply(
     split(ipd_network,
           ipd_network$study),
@@ -258,33 +274,59 @@ do_gcipdr <- function(
   mockd <- as.data.frame(mockl)
   
   
-  # generate pseudodata. Output: list with boot repetition by study. Need to reorganize as list of pooled-by-study data repetitions  
+  # allow for study-specific gicpdr generative setting
+  if (length(SI_k)  == 1)
+  {
+    SI_k <- rep(SI_k, length(input))
+    names(SI_k) <- names(input)
+  } else {
+    if (
+      !all(sort(names(SI_k)) == sort(names(input)))
+    )
+      stop("each element of the SI_k vector must is named after its corresponding study")
+  }
+  if (length(NI_maxEval)  == 1)
+  {
+    NI_maxEval <- rep(NI_maxEval, length(input))
+    names(NI_maxEval) <- names(input)
+  } else {
+    if (
+      !all(sort(names(NI_maxEval)) == sort(names(input)))
+    )
+      stop("each element of the NI_maxEval vector must is named after its corresponding study")
+  }
   
+    
+  # generate pseudodata. Output: list with boot repetition by study. Need to reorganize as list of pooled-by-study data repetitions  
   
   set.seed(seed, "L'Ecuyer") 
   
   future::plan(multisession, workers = cores)
   
   tictoc::tic()
-  raw <- input |> 
+  raw <- names(input) |> 
     furrr::future_map(
 
-        \(df) gcipdr::Simulate.many.datasets(
-          list(df),
-          H = boot_iter, 
-          method = method, 
-          checkdata = TRUE, 
-          tabulate.similar.data = TRUE, 
-          stochastic.integration = only_SI, # will override NI setup if TRUE
-          NI_maxEval = NI_maxEval,
-          SI_k = SI_k
-        )[[1]],
+        \(i) try(
+          gcipdr::Simulate.data.given.IPD(
+            input[[i]],
+            H = boot_iter, 
+            method = method, 
+            checkdata = TRUE, 
+            tabulate.similar.data = TRUE, 
+            stochastic.integration = only_SI, # will override NI setup if TRUE
+            NI_maxEval = NI_maxEval[i],
+            SI_k = SI_k[i]
+          ),
+          silent = TRUE
+        ),
         .options = furrr::furrr_options(
           seed = TRUE,
           globals = c("mclapply", "skewness", 
                       "adaptIntegrate", "rmvnorm",
                       "FitJohnsonDistribution"))
     )
+  names(raw) <- names(input)
   
   tictoc::toc()
   
@@ -307,15 +349,18 @@ do_gcipdr <- function(
       names(raw)[fails] |> 
       furrr::future_map(
         
-        \(i) gcipdr::Simulate.many.datasets(
-          input[i],
-          H = boot_iter, 
-          method = method, 
-          checkdata = TRUE, 
-          tabulate.similar.data = TRUE, 
-          stochastic.integration = TRUE, # will override NI setup if TRUE
-          SI_k = SI_k
-        )[[1]],
+        \(i) try(
+          gcipdr::Simulate.data.given.IPD(
+            input[[i]],
+            H = boot_iter, 
+            method = method, 
+            checkdata = TRUE, 
+            tabulate.similar.data = TRUE, 
+            stochastic.integration = TRUE, # will override NI setup if TRUE
+            SI_k = SI_k[i]
+          ),
+          silent = TRUE
+        ),
         .options = furrr::furrr_options(
           seed = TRUE,
           globals = c("mclapply", "skewness", 
