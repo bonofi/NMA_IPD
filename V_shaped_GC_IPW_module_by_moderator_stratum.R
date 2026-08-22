@@ -111,7 +111,7 @@ system.time(
             set.seed(2607)
             list(
               
-              "GC-IPW-strata" = gcipdr_ipw_balance(
+              "GC-IPW" = gcipdr_ipw_balance(
                 ipd_network = rawGC3_strata[[i]][[j]]$pseud[sample(1:300, 100)],
                 do_pseudodata = FALSE,
                 modelformula = as.formula(study ~ x + V1 + V2),
