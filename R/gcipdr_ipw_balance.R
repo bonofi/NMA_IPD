@@ -14,7 +14,7 @@ gcipdr_ipw_balance <- function(
     ref_study = "1",   # for ATT estimation
     stop_rule = "ks.mean",   # can be a vector
     n_trees = 5000,
-    method = c("3","4"),    # 3 = continuous Gamma, 4 = continuous Johnson
+    method = c("3","4","10"),    # 3 = continuous Gamma, 4 = continuous Johnson, 10 = user-defined marginals 
     boot_iter = 100,
     NI_maxEval = 10000, # or a named list "1" = 10000, "2" = 30000, ...
     SI_k = 10000, # or a named list "1" = 10000, "2" = 30000, ...
@@ -225,7 +225,7 @@ gcipdr_ipw_balance <- function(
 
 do_gcipdr <- function(
     ipd_network,
-    method = c("3","4"), # 3 = continuous Gamma, 4 = continuous Johnson
+    method = c("3","4","10"), # 3 = continuous Gamma, 4 = continuous Johnson, 10 = user-defined marginals
     boot_iter = 100,
     NI_maxEval = 200, # or a named list "1" = 100, "2" = 300 ...
     SI_k = 10000,  # or a named list "1" = 10000, "2" = 30000, ...
@@ -234,7 +234,6 @@ do_gcipdr <- function(
     cores = detectCores() - 1, # ncores to use,
     drop_ref_V = "V1", # drop reference level of moderator variable -> keeping in increases instability due to perfect correlation
     interaction_only = FALSE # if TRUE, keeps only "inter" = trt*V and dropr trt and V
-  
 
 )
 {
@@ -264,7 +263,34 @@ do_gcipdr <- function(
       # it might cause trouble during optimization (corr values close to boundary)
       dplyr::select(!any_of(drop_ref_V)) 
   )
-  
+
+  # calculate marginal moments for custom marginals if method = "10"
+  marginals <- NULL
+  if (method == "10")
+    # internally user defined marginals
+    marginals <- lapply(
+      input,
+      \(df) {
+        moms <- df |> 
+          dplyr::summarise(
+            dplyr::across(
+              .cols = dplyr::everything(),
+              .fns = list(mean = mean, stdr = sd),
+              .names = "{.col}_{.fn}",
+              na.rm = TRUE
+            )
+          ) 
+        
+        list(
+          y = \(x) qnorm(x, mean = moms$y_mean, sd = moms$y_stdr),
+          x = \(x) gcipdr:::qgmom(x, mean = moms$x_mean, sd = moms$x_stdr ),
+          trt = \(x) qbinom(x, 1, prob = moms$trt_mean),
+          # BEWARE: number of V moderators is hard-coded here but should automatically
+          # adapt 
+          V2 = \(x) qbinom(x, 1, prob = moms$V2_mean)
+        )[colnames(df)]
+      }
+    )
   
   
   # empty data container in case GC fails
@@ -316,7 +342,8 @@ do_gcipdr <- function(
             tabulate.similar.data = TRUE, 
             stochastic.integration = only_SI, # will override NI setup if TRUE
             NI_maxEval = NI_maxEval[i],
-            SI_k = SI_k[i]
+            SI_k = SI_k[i],
+            user_defined_marginals = marginals[[i]]
           ),
           silent = TRUE
         ),
@@ -357,7 +384,8 @@ do_gcipdr <- function(
             checkdata = TRUE, 
             tabulate.similar.data = TRUE, 
             stochastic.integration = TRUE, # will override NI setup if TRUE
-            SI_k = SI_k[i]
+            SI_k = SI_k[i],
+            user_defined_marginals = marginals[[i]]
           ),
           silent = TRUE
         ),
