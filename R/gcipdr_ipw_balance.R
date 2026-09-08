@@ -280,16 +280,28 @@ do_gcipdr <- function(
               na.rm = TRUE
             )
           ) 
-        
-        list(
+        # automatically detect all V moderators names from df
+        Vnames <- grep("V", colnames(df), value = TRUE)
+        out <- c() # empty list
+        notV <- list(
           y = \(x) qnorm(x, mean = moms$y_mean, sd = moms$y_stdr),
           x = \(x) gcipdr:::qgmom(x, mean = moms$x_mean, sd = moms$x_stdr ),
-          trt = \(x) qbinom(x, 1, prob = moms$trt_mean),
+          trt = \(x) qbinom(x, 1, prob = moms$trt_mean)
           # BEWARE: number of V moderators is hard-coded here but should automatically
-          # adapt 
-          V2 = \(x) qbinom(x, 1, prob = moms$V2_mean)
-        )[colnames(df)]
+          # adapt --> DONE
+          #V2 = \(x) qbinom(x, 1, prob = moms$V2_mean)
+        )
+        
+        allV <- lapply(
+          Vnames,
+          \(y) \(x) qbinom(x, 1, prob = moms[[paste0(y, "_mean")]]) # print(moms[[paste0(y, "_mean")]]) # test
+        ); names(allV) <- Vnames
+        
+        # output and reorder list by df name
+        c(out, notV, allV)[colnames(df)]
+        
       }
+      
     )
   
   
