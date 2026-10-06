@@ -29,7 +29,7 @@ library(twang)
 library(remotes)
 
 #pak::pak("bonorico/gcipdr")
-pak::pak("bonofi/gcipdr_test")
+pak::pak("bonofi/gcipdr_test@optim_parallel_to_master")
 
 library(gcipdr)
 
