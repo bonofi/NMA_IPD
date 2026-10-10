@@ -31,12 +31,11 @@ library(remotes)
 #pak::pak("bonorico/gcipdr")
 pak::pak("bonofi/gcipdr_test@optim_parallel_to_master")
 
-library(gcipdrtest)
+library(gcipdr)
 
 library(furrr)
 library(carrier)
 library(tictoc)
-library(JohnsonDistribution)
 library(synthpop)
 library(arsenal)
 library(mirai)
