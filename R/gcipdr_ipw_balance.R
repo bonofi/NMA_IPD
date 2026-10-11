@@ -80,63 +80,98 @@ gcipdr_ipw_balance <- function(
       stop("do_pseudodata = FALSE but no pseudodata list provided")
   }
 
-  #future::plan(multisession, workers = cores)
-  mirai::daemons(cores)
+  future::plan(multisession, workers = cores)
+  # mirai::daemons(cores)
+  # 
+  # #browser()
+  # # run IPW on pseudodata --> raw result
+  # tictoc::tic()
+  # rawipw <- pseudodata$pseud |> 
+  #   #    furrr::future_map(      # Error: must change "future.globals.maxSize" options
+  #   purrr::map(
+  #     purrr::in_parallel(
+  #       
+  #       \(df) {
+  #         
+  #         ipwreg <- try(
+  #           ipw_balance(
+  #             df |> 
+  #               # if datalevel = agd, it will be NULL
+  #               dplyr::bind_rows(
+  #                 refstudy
+  #               ) |> 
+  #               dplyr::arrange(study),
+  #             model_formula = modelformula,
+  #             estimand = estimand,
+  #             stop_rule = stop_rule,
+  #             ref_study = ref_study,
+  #             n_trees = n_trees,
+  #             print_diagnostics = FALSE
+  #           ),
+  #           silent = TRUE
+  #         )
+  #         
+  #         if (class(ipwreg) == "try-error")
+  #           return(
+  #             list(
+  #               est = data.frame(failed = ipwreg[1])
+  #             )
+  #           )
+  #         else
+  #           ipwreg
+  #       }
+  #       # pass environment objects to in_parallel
+  #       , "%>%" = `%>%`,
+  #       refstudy = refstudy,
+  #       ipw_balance = ipw_balance,
+  #       modelformula = modelformula,
+  #       estimand = estimand,
+  #       stop_rule = stop_rule,
+  #       ref_study = ref_study,
+  #       n_trees = n_trees
+  #       ### end passing objects to in_parallel
+  #     ) # end in_parallel
+  #   )
+  # 
+  # tictoc::toc()
+  # 
+  # #future::plan(sequential)
+  # mirai::daemons(0)
+  # 
   
-  #browser()
-  # run IPW on pseudodata --> raw result
-  tictoc::tic()
-  rawipw <- pseudodata$pseud |> 
-    #    furrr::future_map(      # Error: must change "future.globals.maxSize" options
-    purrr::map(
-      purrr::in_parallel(
-        
-        \(df) {
-          
-          ipwreg <- try(
-            ipw_balance(
-              df |> 
-                # if datalevel = agd, it will be NULL
-                dplyr::bind_rows(
-                  refstudy
-                ) |> 
-                dplyr::arrange(study),
-              model_formula = modelformula,
-              estimand = estimand,
-              stop_rule = stop_rule,
-              ref_study = ref_study,
-              n_trees = n_trees,
-              print_diagnostics = FALSE
-            ),
-            silent = TRUE
+  rawipw <- future.apply::future_lapply(
+    pseudodata$pseud, 
+    \(df) {
+      
+      ipwreg <- try(
+        ipw_balance(
+          df |> 
+            # if datalevel = agd, it will be NULL
+            dplyr::bind_rows(
+              refstudy
+            ) |> 
+            dplyr::arrange(study),
+          model_formula = modelformula,
+          estimand = estimand,
+          stop_rule = stop_rule,
+          ref_study = ref_study,
+          n_trees = n_trees,
+          print_diagnostics = FALSE
+        ),
+        silent = TRUE
+      )
+      
+      if (class(ipwreg) == "try-error")
+        return(
+          list(
+            est = data.frame(failed = ipwreg[1])
           )
-          
-          if (class(ipwreg) == "try-error")
-            return(
-              list(
-                est = data.frame(failed = ipwreg[1])
-              )
-            )
-          else
-            ipwreg
-        }
-        # pass environment objects to in_parallel
-        , "%>%" = `%>%`,
-        refstudy = refstudy,
-        ipw_balance = ipw_balance,
-        modelformula = modelformula,
-        estimand = estimand,
-        stop_rule = stop_rule,
-        ref_study = ref_study,
-        n_trees = n_trees
-        ### end passing objects to in_parallel
-      ) # end in_parallel
-    )
+        )
+      else
+        ipwreg
+    }, 
+    future.seed = TRUE)
   
-  tictoc::toc()
-  
-  #future::plan(sequential)
-  mirai::daemons(0)
   
   gc()
   
