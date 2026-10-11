@@ -6,7 +6,7 @@
 
 gcipdr_ipw_balance <- function(
     ipd_network,
-    do_pseudodata = TRUE, # if false ipd_network must be list of pseudodata 
+    do_pseudodata = TRUE, # if false additionally give a list of pseudodata 
     pseudodata = NULL,
     modelformula = as.formula(study ~ x + V1 + V2),   
     datalevel = c("ipd-agd", "agd"), # type of data available: mixed ipd-agd, only agd ...
@@ -14,7 +14,7 @@ gcipdr_ipw_balance <- function(
     ref_study = "1",   # for ATT estimation
     stop_rule = "ks.mean",   # can be a vector
     n_trees = 5000,
-    method = c("3","4","10"),    # 3 = continuous Gamma, 4 = continuous Johnson, 10 = user-defined marginals 
+    method = c("3","4","13"),    # 3 = continuous Gamma, 4 = continuous Johnson, 13 = user-defined marginals 
     boot_iter = 100,
     NI_maxEval = 10000, # or a named list "1" = 10000, "2" = 30000, ...
     SI_k = 10000, # or a named list "1" = 10000, "2" = 30000, ...
@@ -22,7 +22,9 @@ gcipdr_ipw_balance <- function(
     seed = 49632,
     save_raw = TRUE,
     cores = detectCores() - 1, # ncores to use
-    drop_ref_V = "V1"
+    drop_ref_V = "V1",
+    kruskal_use = FALSE,
+    nr_future = FALSE
     
 ){
   
@@ -53,7 +55,9 @@ gcipdr_ipw_balance <- function(
       only_SI = only_SI,
       seed = seed,
       cores = cores,
-      drop_ref_V = drop_ref_V
+      drop_ref_V = drop_ref_V,
+      kruskal_use = kruskal_use,
+      nr_future = nr_future,
     )
     
     gc()
@@ -61,6 +65,7 @@ gcipdr_ipw_balance <- function(
   } else {
     if (is.list(pseudodata))
       pseudodata <- switch(
+        datalevel,
         "agd" = list(pseud = pseudodata, raw = NULL),
         "ipd-agd" = list(
           # drop ref pseudostudy if ipd-agd
@@ -74,12 +79,11 @@ gcipdr_ipw_balance <- function(
     else
       stop("do_pseudodata = FALSE but no pseudodata list provided")
   }
-    
-  
 
   #future::plan(multisession, workers = cores)
   mirai::daemons(cores)
   
+  #browser()
   # run IPW on pseudodata --> raw result
   tictoc::tic()
   rawipw <- pseudodata$pseud |> 
@@ -225,7 +229,7 @@ gcipdr_ipw_balance <- function(
 
 do_gcipdr <- function(
     ipd_network,
-    method = c("3","4","10"), # 3 = continuous Gamma, 4 = continuous Johnson, 10 = user-defined marginals
+    method = c("3","4","11","13", "15"), # 3 = continuous Gamma, 4 = continuous Johnson, 13 = user-defined marginals
     boot_iter = 100,
     NI_maxEval = 200, # or a named list "1" = 100, "2" = 300 ...
     SI_k = 10000,  # or a named list "1" = 10000, "2" = 30000, ...
@@ -233,6 +237,8 @@ do_gcipdr <- function(
     seed = 49632,
     cores = detectCores() - 1, # ncores to use,
     drop_ref_V = "V1", # drop reference level of moderator variable -> keeping in increases instability due to perfect correlation
+    kruskal_use = FALSE,
+    nr_future = FALSE,
     interaction_only = FALSE # if TRUE, keeps only "inter" = trt*V and dropr trt and V
 
 )
@@ -264,9 +270,13 @@ do_gcipdr <- function(
       dplyr::select(!any_of(drop_ref_V)) 
   )
 
-  # calculate marginal moments for custom marginals if method = "10"
+  # calculate marginal moments for custom marginals if method = "11", 13", "15"
   marginals <- NULL
-  if (method == "10")
+  if (
+    any(
+      method %in% c("11", "13", "15")
+    )
+  )
     # internally user defined marginals
     marginals <- lapply(
       input,
@@ -355,7 +365,9 @@ do_gcipdr <- function(
             stochastic.integration = only_SI, # will override NI setup if TRUE
             NI_maxEval = NI_maxEval[i],
             SI_k = SI_k[i],
-            user_defined_marginals = marginals[[i]]
+            user_defined_marginals = marginals[[i]],
+            kruskal_use = kruskal_use,
+            newtrap_parallel = nr_future
           ),
           silent = TRUE
         ),
@@ -397,7 +409,9 @@ do_gcipdr <- function(
             tabulate.similar.data = TRUE, 
             stochastic.integration = TRUE, # will override NI setup if TRUE
             SI_k = SI_k[i],
-            user_defined_marginals = marginals[[i]]
+            user_defined_marginals = marginals[[i]],
+            kruskal_use = kruskal_use,
+            newtrap_parallel = nr_future
           ),
           silent = TRUE
         ),
