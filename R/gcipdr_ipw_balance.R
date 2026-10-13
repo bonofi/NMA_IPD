@@ -139,7 +139,8 @@ gcipdr_ipw_balance <- function(
   # mirai::daemons(0)
   # 
   
-  rawipw <- future.apply::future_lapply(
+ # rawipw <- future.apply::future_lapply(
+  rawipw <- lapply(
     pseudodata$pseud, 
     \(df) {
       
@@ -169,8 +170,9 @@ gcipdr_ipw_balance <- function(
         )
       else
         ipwreg
-    }, 
-    future.seed = TRUE)
+    # }, 
+    # future.seed = TRUE)
+    })
   
   
   gc()
