@@ -80,7 +80,7 @@ gcipdr_ipw_balance <- function(
       stop("do_pseudodata = FALSE but no pseudodata list provided")
   }
 
-  future::plan(multisession, workers = cores)
+  #future::plan(multisession, workers = cores)
   # mirai::daemons(cores)
   # 
   # #browser()
