@@ -99,9 +99,10 @@ cart_ipw_balance <- function(
                        "Vlevel_", "V")
                      out
                    }
-  ) |> 
-    purrr::map(
-      purrr::in_parallel(
+  ) |>
+    lapply(
+    # purrr::map(
+    #   purrr::in_parallel(
         
         \(df) {
           
@@ -132,17 +133,17 @@ cart_ipw_balance <- function(
           else
             ipwreg
         }
-        # pass environment objects to in_parallel
-        , "%>%" = `%>%`,
-        refstudy = refstudy,
-        ipw_balance = ipw_balance,
-        modelformula = modelformula,
-        estimand = estimand,
-        stop_rule = stop_rule,
-        ref_study = ref_study,
-        n_trees = n_trees
-        ### end passing objects to in_parallel
-      ) # end in_parallel
+      #   # pass environment objects to in_parallel
+      #   , "%>%" = `%>%`,
+      #   refstudy = refstudy,
+      #   ipw_balance = ipw_balance,
+      #   modelformula = modelformula,
+      #   estimand = estimand,
+      #   stop_rule = stop_rule,
+      #   ref_study = ref_study,
+      #   n_trees = n_trees
+      #   ### end passing objects to in_parallel
+      # ) # end in_parallel
     )
   
   tictoc::toc()
