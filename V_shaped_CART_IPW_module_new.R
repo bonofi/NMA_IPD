@@ -95,9 +95,9 @@ cart_attipdad <- lapply(
 
 system.time(
   
-  rawcart_attipdad <- names(rawGC3) |> 
+  rawcart_attipdad <- names(inconsistency) |> 
     purrr::map(
-      \(i) names(rawGC3[[i]]) |> 
+      \(i) names(ssizes) |> 
         purrr::map(
           \(j){
             
