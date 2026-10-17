@@ -38,8 +38,8 @@ system.time(
                     dplyr::filter(V == l) |> 
                     dplyr::select(!starts_with("V")),
                   boot_iter = B,
-                  method = "3",
-                  SI_k = 30000,
+                  method = "11", #  "13",
+                  SI_k = c(50000, rep(10000, 4)), # only reference study 1 gets the optimal MC setting
                   only_SI = TRUE,
                   seed = 30697,
                   cores = detectCores()-2
@@ -48,7 +48,7 @@ system.time(
             )
             names(out) <- sort(unique(df2$V))
             
-            # conjunct strata into one single data set
+            # append strata into one single data set
             
             # matrix of moderator dummy variables
             Vdat <- diag(length(unique(df2$V)))
@@ -89,6 +89,96 @@ system.time(
     ) 
 )
 
+
+
+set.seed(2607)
+index <- sample(1:300, 100)
+
+rawgc_att_strata <- lapply(
+  c("ipd-agd", "agd"),
+  \(dl) names(rawGC3_strata) |> 
+    purrr::map(
+      \(i) names(rawGC3_strata[[i]]) |> 
+        purrr::map(
+          \(j){
+            
+            print(
+              paste0(
+                "inconsistency ", i, 
+                "; sample size ", j
+              )
+            )
+            gc()
+            
+            list(
+              
+              "GC-IPW" = gcipdr_ipw_balance(
+                ipd_network = res1dat |> 
+                  dplyr::filter(inconsistency == i & samplesize == j),
+                do_pseudodata = FALSE,
+                pseudodata = rawGC3_strata[[i]][[j]]$pseud[index],
+                modelformula = as.formula(study ~ x + V1 + V2),
+                estimand = "ATT",
+                datalevel = dl,
+                stop_rule = "es.mean",
+                cores = detectCores() - 2
+                
+              )
+              
+            )
+          }
+          
+        )
+    ) 
+); names(rawgc_att_strata) <- c("ipd-agd", "agd")
+
+for (i in names(rawgc_att_strata)){
+  for (j in names(inconsistency)){
+    names(rawgc_att_strata[[i]]) <- names(inconsistency)
+    names(rawgc_att_strata[[i]][[j]]) <- names(ssizes)
+  }
+}
+
+gc()
+
+
+gc_att_strata <- lapply(
+  names(rawgc_att_strata),
+  \(dl) lapply(
+    names(inconsistency),
+    function(i) lapply(
+      names(ssizes), 
+      function(j)
+        lapply(
+          c(
+            "GC-IPW-strata"
+          ),
+          function(x)
+            rawgc_att_strata[[dl]][[i]][[j]][[x]]$est   
+        ) |>
+        dplyr::bind_rows()|>
+        tibble::as_tibble() |> 
+        tibble::add_column(
+          inconsistency = i,
+          samplesize = j
+        )
+    )
+  ) |> 
+    dplyr::bind_rows() |> 
+    dplyr::mutate(
+      samplesize = factor(samplesize, 
+                          levels = c("small", "medium", "large")),
+      inconsistency = factor(inconsistency,
+                             levels = c("none", "mild", "high")),
+      evidence = "GC-IPW-strata"
+    ) |> 
+    bind_rows()
+)
+
+
+
+
+############ OLD
 #### RUN GC-IPW IPD-AD (reference study nr 1 is in IPD format, all other are AD)
 
 ## run IPW
