@@ -57,7 +57,7 @@ for (i in names(rawcart_att)){
 gc()
 
 
-cart_attipdad <- lapply(
+cart_att <- lapply(
   names(rawcart_att),
   \(dl) lapply(
     names(inconsistency),
@@ -135,7 +135,7 @@ names(rawcart_attipdad) <- names(inconsistency)
 for (i in names(inconsistency))
   names(rawcart_attipdad[[i]]) <- names(ssizes) 
 
-saveRDS(rawcart_attipdad, "cartres1.rds")
+saveRDS(rawcart_attipdad, "./results/cartres1.rds")
 
 gc()
 
@@ -175,14 +175,7 @@ cart_attipdad <- lapply(
 allres1b <- res1 |> 
   dplyr::bind_rows(
     res1bbal,
-    # res1_attipdad,
-    # res1_attad |> 
-    #   mutate(
-    #     level = "AGD"
-    #   ),
-    res1_attipdad4,
-    res1_attad4
-  )
+    cart_attipdad  )
 
 
 

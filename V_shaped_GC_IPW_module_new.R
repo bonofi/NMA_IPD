@@ -122,18 +122,96 @@ res1_attipdad <- lapply(
   ) 
 
 
-#### RUN GC-IPW AD (reference study is nr 1) all studies have AD format
+#### ALL data levels at once
+
+rawgc_att <- lapply(
+  c("ipd-agd", "agd"),
+  \(dl) names(rawGC3) |> 
+    purrr::map(
+      \(i) names(rawGC3[[i]]) |> 
+        purrr::map(
+          \(j){
+            
+            print(
+              paste0(
+                "inconsistency ", i, 
+                "; sample size ", j
+              )
+            )
+            gc()
+            
+            list(
+              
+              "GC-IPW" = gcipdr_ipw_balance(
+                ipd_network = res1dat |> 
+                  dplyr::filter(inconsistency == i & samplesize == j),
+                do_pseudodata = FALSE,
+                pseudodata = rawGC3[[i]][[j]]$pseud[index],
+                modelformula = as.formula(study ~ x + V1 + V2),
+                estimand = "ATT",
+                datalevel = dl,
+                stop_rule = "es.mean",
+                cores = detectCores() - 2
+                
+              )
+              
+            )
+          }
+          
+        )
+    ) 
+); names(rawgc_att) <- c("ipd-agd", "agd")
+
+for (i in names(rawgc_att)){
+  for (j in names(inconsistency)){
+    names(rawgc_att[[i]]) <- names(inconsistency)
+    names(rawgc_att[[i]][[j]]) <- names(ssizes)
+  }
+}
+
+gc()
+
+
+gc_att <- lapply(
+  names(rawgc_att),
+  \(dl) lapply(
+    names(inconsistency),
+    function(i) lapply(
+      names(ssizes), 
+      function(j)
+        lapply(
+          c(
+            "GC-IPW"
+          ),
+          function(x)
+            rawgc_att[[dl]][[i]][[j]][[x]]$est   
+        ) |>
+        dplyr::bind_rows()|>
+        tibble::as_tibble() |> 
+        tibble::add_column(
+          inconsistency = i,
+          samplesize = j
+        )
+    )
+  ) |> 
+    dplyr::bind_rows() |> 
+    dplyr::mutate(
+      samplesize = factor(samplesize, 
+                          levels = c("small", "medium", "large")),
+      inconsistency = factor(inconsistency,
+                             levels = c("none", "mild", "high")),
+      evidence = "GC-IPW"
+    ) |> 
+    bind_rows()
+)
+
+  
 
 #####################
 
 allres1b <- res1 |> 
   dplyr::bind_rows(
     res1bbal,
-    # res1_attipdad,
-    # res1_attad |> 
-    #   mutate(
-    #     level = "AGD"
-    #   ),
     res1_attipdad4,
     res1_attad4
   )
