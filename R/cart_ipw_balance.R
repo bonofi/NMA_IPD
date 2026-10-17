@@ -49,14 +49,14 @@ cart_ipw_balance <- function(
       y, study, V, trt_name, x) |> 
     synthpop::syn.strata(
       strata = strata,
-      visit.sequence = c(3, 5, 4, 1, 2),
+      visit.sequence = c(3, 5, 4, 1, 2), # hard coded must be given as function argument
       method = method, #c("cart", "", "cart", "sample", "cart" ), #c("normrank", "", "cart", "sample", "cubertnorm" ),  
       m=boot_iter, 
       seed = seed,
-      minstratumsize = 10
+      minstratumsize = 10,
+      print.flag = FALSE
     )
   
-  # todo: must iclude subjid!!
   
  # synthpop::summary.synds(raw)
  # synthpop::compare(
@@ -69,7 +69,13 @@ cart_ipw_balance <- function(
   
   ## run IPW on synthetic data
 
-  mirai::daemons(cores)
+  #mirai::daemons(cores)
+  
+  message(
+    paste0("Starting CART on pseudo IPD. Inconsistency ",
+           unique(ipd_network$inconsistency), ", Sample size ", 
+           unique(ipd_network$samplesize))
+  )
   
   # run IPW on pseudodata --> raw result
   tictoc::tic()
@@ -100,9 +106,9 @@ cart_ipw_balance <- function(
                      out
                    }
   ) |>
-    
-    purrr::map(
-      purrr::in_parallel(
+    future.apply::future_lapply(    
+    # purrr::map(
+    #   purrr::in_parallel(
         
         \(df) {
           
@@ -133,22 +139,23 @@ cart_ipw_balance <- function(
           else
             ipwreg
         }
-        # pass environment objects to in_parallel
-        , "%>%" = `%>%`,
-        refstudy = refstudy,
-        ipw_balance = ipw_balance,
-        modelformula = modelformula,
-        estimand = estimand,
-        stop_rule = stop_rule,
-        ref_study = ref_study,
-        n_trees = n_trees
-        ### end passing objects to in_parallel
-      ) # end in_parallel
-    )
+      #   # pass environment objects to in_parallel
+      #   , "%>%" = `%>%`,
+      #   refstudy = refstudy,
+      #   ipw_balance = ipw_balance,
+      #   modelformula = modelformula,
+      #   estimand = estimand,
+      #   stop_rule = stop_rule,
+      #   ref_study = ref_study,
+      #   n_trees = n_trees
+      #   ### end passing objects to in_parallel
+      # ) # end in_parallel
+
+          )
   
   tictoc::toc()
   
-  mirai::daemons(0)
+  #mirai::daemons(0)
   
   gc()
   
