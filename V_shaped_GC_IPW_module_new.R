@@ -28,12 +28,13 @@ system.time(
             
             do_gcipdr(
               ipd_network = df2,
-              boot_iter = 300,
+              boot_iter = 30,
               method = "11", #  "13",
               SI_k = c(50000, rep(10000, 4)), # only reference study 1 gets the optimal MC setting
               only_SI = TRUE,
               seed = 30697,
-              cores = detectCores()-2
+              cores = detectCores()-2,
+              
             )
             
           }
@@ -47,7 +48,7 @@ system.time(
 ## run IPW IPD-AGD
 # must run on subset due to computational resources
 set.seed(2607)
-index <- sample(1:300, 100)
+index <- sample(1:30, 10)
 
 system.time(
   
@@ -91,6 +92,8 @@ for (i in names(inconsistency))
   names(rawbal1_attipdad[[i]]) <- names(ssizes) 
 
 gc()
+
+saveRDS(rawbal1_attipdad, "./results/gcres1")
 
 res1_attipdad <- lapply(
   names(inconsistency),

@@ -463,7 +463,7 @@ do_gcipdr <- function(
     
   }
   
-  future::plan(sequential)
+ # future::plan(sequential)
   
   
   # re-check if any GC failed with numerical integration only
