@@ -8,6 +8,7 @@ cart_ipw_balance <- function(
     modelformula = as.formula(study ~ x + V1 + V2),
     datalevel = c("ipd-agd", "agd"), # type of data available: mixed ipd-agd, only agd ...
     method = c("normrank", "", "ctree", "sample", "cubertnorm" ),
+    vars_seq = c(3, 5, 4, 1, 2), # sequence of variables to be generated: it maters
     by_moderator = FALSE,   # if TRUE, it stratifies data synthesis by moderator variable ...
     estimand = c("ATT", "ATE"),
     ref_study = "1",   # for ATT estimation
@@ -49,7 +50,7 @@ cart_ipw_balance <- function(
       y, study, V, trt_name, x) |> 
     synthpop::syn.strata(
       strata = strata,
-      visit.sequence = c(3, 5, 4, 1, 2), # hard coded must be given as function argument
+      visit.sequence = vars_seq, 
       method = method, #c("cart", "", "cart", "sample", "cart" ), #c("normrank", "", "cart", "sample", "cubertnorm" ),  
       m=boot_iter, 
       seed = seed,
