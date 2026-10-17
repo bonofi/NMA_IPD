@@ -72,7 +72,7 @@ cart_ipw_balance <- function(
   #mirai::daemons(cores)
   
   message(
-    paste0("Starting CART on pseudo IPD. Inconsistency ",
+    paste0("Starting IPW on CART pseudo IPD. Inconsistency ",
            unique(ipd_network$inconsistency), ", Sample size ", 
            unique(ipd_network$samplesize))
   )

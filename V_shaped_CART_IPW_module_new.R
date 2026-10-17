@@ -119,7 +119,8 @@ system.time(
                 method = "ctree",
                 estimand = "ATT",
                 stop_rule = "es.mean",
-                cores = detectCores() - 2
+                cores = detectCores() - 2,
+                boot_iter = 10
                 
               )
               
@@ -133,6 +134,8 @@ system.time(
 names(rawcart_attipdad) <- names(inconsistency)
 for (i in names(inconsistency))
   names(rawcart_attipdad[[i]]) <- names(ssizes) 
+
+saveRDS(rawcart_attipdad, "cartres1.rds")
 
 gc()
 
