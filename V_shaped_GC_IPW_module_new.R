@@ -124,6 +124,9 @@ res1_attipdad <- lapply(
 
 #### ALL data levels at once
 
+set.seed(2607)
+index <- sample(1:300, 100)
+
 rawgc_att <- lapply(
   c("ipd-agd", "agd"),
   \(dl) names(rawGC3) |> 
