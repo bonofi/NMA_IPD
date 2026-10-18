@@ -1,8 +1,8 @@
 # run CART for ATT in level IPD-AGD and AGD
 # 
 
-# rawbal1_attipdad <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1_attipdad.rds")
-
+# rawcart_attipdad <- readRDS("./results/cartres1.rds")
+ 
 ######################################## STRATEGY: run GC on optimal settings first, then run IPW on GC data 
 
 ## run IPW IPD-AGD
@@ -174,7 +174,8 @@ cart_attipdad <- lapply(
 
 allres1b <- res1 |> 
   dplyr::bind_rows(
-    res1bbal,
+    res1bal,
+    res1_attipdad,
     cart_attipdad  )
 
 

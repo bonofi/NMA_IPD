@@ -2,9 +2,7 @@
 # 
 # 
 
-# rawGC3 <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawGC3.rds")
-# rawbal1_attipdad <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1_attipdad.rds")
-# rawbal1_attad <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1_attad.rds")
+# rawbal1_attipdad <- readRDS("./results/gcres1.rds")
 
 ######################################## STRATEGY: run GC on optimal settings first, then run IPW on GC data 
 
@@ -93,7 +91,7 @@ for (i in names(inconsistency))
 
 gc()
 
-saveRDS(rawbal1_attipdad, "./results/gcres1")
+saveRDS(rawbal1_attipdad, "./results/gcres1.rds")
 
 res1_attipdad <- lapply(
   names(inconsistency),
@@ -218,8 +216,7 @@ gc_att <- lapply(
 allres1b <- res1 |> 
   dplyr::bind_rows(
     res1bbal,
-    res1_attipdad4,
-    res1_attad4
+    res1_attipdad,
   )
 
 

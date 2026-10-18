@@ -326,7 +326,7 @@ names(rawbal1) <- apply(simplan, 1, \(x) paste(x, collapse = "-"))
 future::plan(sequential)
 
 
-# rawbal1 <- readRDS("C:/Users/federico.bonofiglio/Downloads/rawbal1.rds")
+# rawbal1 <- readRDS("./results/rawbal1.rds")
 
 ### extract contrasts after balancing
 
