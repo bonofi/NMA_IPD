@@ -174,7 +174,7 @@ cart_attipdad <- lapply(
 
 allres1b <- res1 |> 
   dplyr::bind_rows(
-    res1bal,
+    res1bbal,
     res1_attipdad,
     cart_attipdad  )
 
