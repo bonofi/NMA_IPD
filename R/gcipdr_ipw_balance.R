@@ -139,8 +139,9 @@ gcipdr_ipw_balance <- function(
   # mirai::daemons(0)
   # 
   
- # rawipw <- future.apply::future_lapply(
-  rawipw <- lapply(
+  tictoc::tic()
+  
+  rawipw <- future.apply::future_lapply(
     pseudodata$pseud, 
     \(df) {
       
@@ -170,10 +171,10 @@ gcipdr_ipw_balance <- function(
         )
       else
         ipwreg
-    # }, 
-    # future.seed = TRUE)
-    })
-  
+    },
+    future.seed = TRUE)
+
+  tictoc::toc()
   
   gc()
   
@@ -386,7 +387,6 @@ do_gcipdr <- function(
   
   set.seed(seed, "L'Ecuyer") 
   
-  future::plan(multisession, workers = cores)
   
   tictoc::tic()
   raw <- names(input) |> 

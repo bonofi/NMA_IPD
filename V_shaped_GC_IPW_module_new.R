@@ -26,7 +26,7 @@ system.time(
             
             do_gcipdr(
               ipd_network = df2,
-              boot_iter = 30,
+              boot_iter = 300,
               method = "11", #  "13",
               SI_k = c(50000, rep(10000, 4)), # only reference study 1 gets the optimal MC setting
               only_SI = TRUE,
@@ -46,7 +46,7 @@ system.time(
 ## run IPW IPD-AGD
 # must run on subset due to computational resources
 set.seed(2607)
-index <- sample(1:30, 10)
+index <- sample(1:300, 100)
 
 system.time(
   

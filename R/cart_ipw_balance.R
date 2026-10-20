@@ -151,8 +151,8 @@ cart_ipw_balance <- function(
       #   n_trees = n_trees
       #   ### end passing objects to in_parallel
       # ) # end in_parallel
-
-          )
+      , future.seed = TRUE
+    )
   
   tictoc::toc()
   
