@@ -91,7 +91,7 @@ cart_att <- lapply(
 )
 
 
-
+future::plan(multisession, workers = 6)
 ################## OLD
 
 system.time(
