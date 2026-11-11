@@ -91,7 +91,7 @@ cart_att <- lapply(
 )
 
 
-future::plan(multisession, workers = 6)
+future::plan(multisession, workers = detectCores() - 2)
 ################## OLD
 
 system.time(
@@ -120,7 +120,7 @@ system.time(
                 estimand = "ATT",
                 stop_rule = "es.mean",
                 cores = detectCores() - 2,
-                boot_iter = 10
+                boot_iter = 300
                 
               )
               
