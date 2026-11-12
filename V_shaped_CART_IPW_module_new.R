@@ -120,7 +120,7 @@ system.time(
                 estimand = "ATT",
                 stop_rule = "es.mean",
                 cores = detectCores() - 2,
-                boot_iter = 300
+                boot_iter = 100
                 
               )
               
