@@ -7,6 +7,8 @@
 
 ## run IPW IPD-AGD
 
+future::plan(multisession, workers = detectCores() - 2)
+
 
 rawcart_att <- lapply(
   c("ipd-agd", "agd"),
@@ -56,6 +58,7 @@ for (i in names(rawcart_att)){
 
 gc()
 
+saveRDS(rawcart_att, "./results/allcartres.rds")
 
 cart_att <- lapply(
   names(rawcart_att),
@@ -64,19 +67,14 @@ cart_att <- lapply(
     function(i) lapply(
       names(ssizes), 
       function(j)
-        lapply(
-          c(
-            "CART-IPW"
-          ),
-          function(x)
-            rawcart_att[[dl]][[i]][[j]][[x]]$est   
-        ) |>
-        dplyr::bind_rows()|>
+            rawcart_att[[dl]][[i]][[j]]$`CART-IPW`$est |>
         tibble::as_tibble() |> 
         tibble::add_column(
           inconsistency = i,
           samplesize = j
-        )
+        )   
+        ) |>
+        dplyr::bind_rows()
     )
   ) |> 
     dplyr::bind_rows() |> 
@@ -84,11 +82,10 @@ cart_att <- lapply(
       samplesize = factor(samplesize, 
                           levels = c("small", "medium", "large")),
       inconsistency = factor(inconsistency,
-                             levels = c("none", "mild", "high")),
-      evidence = "CART-IPW"
+                             levels = c("none", "mild", "high"))
     ) |> 
     bind_rows()
-)
+
 
 
 future::plan(multisession, workers = detectCores() - 2)
