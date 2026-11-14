@@ -50,100 +50,110 @@ system.time(
 
 
 
-#### ALL data levels at once
+#### RUN IPW on ALL data levels at once
 
 set.seed(2607)
 index <- sample(1:300, 100)
 
 rawgc_att <- lapply(
-  c("ipd-agd", "agd"),
-  \(dl) names(rawGC3) |> 
-    purrr::map(
-      \(i) names(rawGC3[[i]]) |> 
-        purrr::map(
-          \(j){
-            
-            print(
-              paste0(
-                "inconsistency ", i, 
-                "; sample size ", j
-              )
-            )
-            gc()
-            
-            list(
+  names(rawGC3),
+  \(m) lapply(
+    c("ipd-agd", "agd"),
+    \(dl) names(rawGC3[[m]]) |> 
+      purrr::map(
+        \(i) names(rawGC3[[m]][[i]]) |> 
+          purrr::map(
+            \(j){
               
-              "GC-IPW" = gcipdr_ipw_balance(
-                ipd_network = res1dat |> 
-                  dplyr::filter(inconsistency == i & samplesize == j),
-                do_pseudodata = FALSE,
-                pseudodata = rawGC3[[i]][[j]]$pseud[index],
-                modelformula = as.formula(study ~ x + V1 + V2),
-                estimand = "ATT",
-                datalevel = dl,
-                stop_rule = "es.mean",
-                cores = detectCores() - 2
+              print(
+                paste0(
+                  "inconsistency ", i, 
+                  "; sample size ", j
+                )
+              )
+              gc()
+              
+              list2(
+                
+                "GC-IPW-{m}" := gcipdr_ipw_balance(
+                  ipd_network = res1dat |> 
+                    dplyr::filter(inconsistency == i & samplesize == j),
+                  do_pseudodata = FALSE,
+                  pseudodata = rawGC3[[m]][[i]][[j]]$pseud[index],
+                  modelformula = as.formula(study ~ x + V1 + V2),
+                  estimand = "ATT",
+                  datalevel = dl,
+                  stop_rule = "es.mean"
+                  
+                )
                 
               )
-              
-            )
-          }
-          
-        )
-    ) 
-); names(rawgc_att) <- c("ipd-agd", "agd")
+            }
+            
+          )
+      ) 
+  )
+) 
 
-for (i in names(rawgc_att)){
-  for (j in names(inconsistency)){
-    names(rawgc_att[[i]]) <- names(inconsistency)
-    names(rawgc_att[[i]][[j]]) <- names(ssizes)
+names(rawgc_att) <- names(rawGC3)
+
+for (m in names(rawgc_att))
+  names(rawgc_att[[m]]) <- c("ipd-agd", "agd")
+  
+for (m in names(rawgc_att))
+  for (i in names(rawgc_att[[m]])){
+    for (j in names(inconsistency)){
+      names(rawgc_att[[m]][[i]]) <- names(inconsistency)
+      names(rawgc_att[[m]][[i]][[j]]) <- names(ssizes)
+    }
   }
-}
+
+saveRDS(rawgc_att, "./results/rawgc_att.rds")
+
 
 gc()
 
 
 gc_att <- lapply(
   names(rawgc_att),
-  \(dl) lapply(
-    names(inconsistency),
-    function(i) lapply(
-      names(ssizes), 
-      function(j)
-        lapply(
-          c(
-            "GC-IPW"
-          ),
-          function(x)
-            rawgc_att[[dl]][[i]][[j]][[x]]$est   
-        ) |>
-        dplyr::bind_rows()|>
-        tibble::as_tibble() |> 
-        tibble::add_column(
-          inconsistency = i,
-          samplesize = j
-        )
-    )
-  ) |> 
-    dplyr::bind_rows() |> 
-    dplyr::mutate(
-      samplesize = factor(samplesize, 
-                          levels = c("small", "medium", "large")),
-      inconsistency = factor(inconsistency,
-                             levels = c("none", "mild", "high")),
-      evidence = "GC-IPW"
+  \(m) lapply(
+    names(rawgc_att[[m]]),
+    \(dl) lapply(
+      names(inconsistency),
+      \(i) lapply(
+        names(ssizes), 
+        \(j)
+        
+        rawgc_att[[m]][[dl]][[i]][[j]][[paste0("GC-IPW-", m)]]$est |>
+          tibble::as_tibble() |> 
+          dplyr::mutate(
+            inconsistency = i,
+            samplesize = j,
+            evidence = paste0("GC-IPW-", m)
+          )
+      ) |> 
+        dplyr::bind_rows()
     ) |> 
-    bind_rows()
-)
+      dplyr::bind_rows() 
+  ) |> 
+    dplyr::bind_rows() 
+) |> 
+  dplyr::bind_rows() |> 
+  dplyr::mutate(
+    samplesize = factor(samplesize, 
+                        levels = c("small", "medium", "large")),
+    inconsistency = factor(inconsistency,
+                           levels = c("none", "mild", "high"))
+  )
 
-  
+
 
 #####################
 
 allres1b <- res1 |> 
   dplyr::bind_rows(
     res1bbal,
-    res1_attipdad,
+    gc_att,
   )
 
 
