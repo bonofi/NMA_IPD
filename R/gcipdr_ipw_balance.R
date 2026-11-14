@@ -273,7 +273,7 @@ do_gcipdr <- function(
     SI_k = 10000,  # or a named list "1" = 10000, "2" = 30000, ...
     only_SI = FALSE,
     seed = 49632,
-    cores = detectCores() - 1, # ncores to use,
+    cores = detectCores() - 1, # ncores to use DEPRECATED,
     drop_ref_V = "V1", # drop reference level of moderator variable -> keeping in increases instability due to perfect correlation
     kruskal_use = FALSE,
     nr_future = FALSE,
@@ -365,33 +365,26 @@ do_gcipdr <- function(
   {
     SI_k <- rep(SI_k, length(input))
     names(SI_k) <- names(input)
-  } else {
-    if (
-      !all(sort(names(SI_k)) == sort(names(input)))
-    )
-      stop("each element of the SI_k vector must is named after its corresponding study")
-  }
+  } else 
+    # POSSIBLE TRAP: SI_k order must be manually given by user to match order of input
+    names(SI_k) <- names(input)
+  
   if (length(NI_maxEval)  == 1)
   {
     NI_maxEval <- rep(NI_maxEval, length(input))
     names(NI_maxEval) <- names(input)
-  } else {
-    if (
-      !all(sort(names(NI_maxEval)) == sort(names(input)))
-    )
-      stop("each element of the NI_maxEval vector must is named after its corresponding study")
-  }
+  } else 
+    names(NI_maxEval) <- names(NI_maxEval)
   
     
   # generate pseudodata. Output: list with boot repetition by study. Need to reorganize as list of pooled-by-study data repetitions  
   
   set.seed(seed, "L'Ecuyer") 
   
-  
   tictoc::tic()
   raw <- names(input) |> 
-    furrr::future_map(
-
+    #furrr::future_map(
+    future.apply::future_lapply(
         \(i) try(
           gcipdr::Simulate.data.given.IPD(
             input[[i]],
@@ -408,12 +401,13 @@ do_gcipdr <- function(
           ),
           silent = TRUE
         ),
-        .options = furrr::furrr_options(
-          seed = TRUE,
-          globals = c("mclapply", "skewness", 
-                      "adaptIntegrate", "rmvnorm",
-                      "FitJohnsonDistribution"))
-    )
+        # .options = furrr::furrr_options(
+        #   seed = TRUE,
+        #   globals = c("mclapply", "skewness", 
+        #               "adaptIntegrate", "rmvnorm",
+        #               "FitJohnsonDistribution"))
+        future.seed = TRUE
+            )
   names(raw) <- names(input)
   
   tictoc::toc()
@@ -435,8 +429,8 @@ do_gcipdr <- function(
     tictoc::tic()
     raw[names(raw)[fails]] <- 
       names(raw)[fails] |> 
-      furrr::future_map(
-        
+      #furrr::future_map(
+      future.apply::future_lapply(  
         \(i) try(
           gcipdr::Simulate.data.given.IPD(
             input[[i]],
@@ -452,18 +446,17 @@ do_gcipdr <- function(
           ),
           silent = TRUE
         ),
-        .options = furrr::furrr_options(
-          seed = TRUE,
-          globals = c("mclapply", "skewness", 
-                      "adaptIntegrate", "rmvnorm",
-                      "FitJohnsonDistribution"))
+        # .options = furrr::furrr_options(
+        #   seed = TRUE,
+        #   globals = c("mclapply", "skewness", 
+        #               "adaptIntegrate", "rmvnorm",
+        #               "FitJohnsonDistribution"))
+        future.seed = TRUE
       )
     
     tictoc::toc()
     
   }
-  
- # future::plan(sequential)
   
   
   # re-check if any GC failed with numerical integration only
