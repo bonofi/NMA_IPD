@@ -87,93 +87,13 @@ cart_att <- lapply(
     bind_rows()
 
 
-
-future::plan(multisession, workers = detectCores() - 2)
-################## OLD
-
-system.time(
-  
-  rawcart_attipdad <- names(inconsistency) |> 
-    purrr::map(
-      \(i) names(ssizes) |> 
-        purrr::map(
-          \(j){
-            
-            print(
-              paste0(
-                "inconsistency ", i, 
-                "; sample size ", j
-              )
-            )
-            gc()
-            
-            list(
-              
-              "CART-IPW" = cart_ipw_balance(
-                ipd_network = res1dat |> 
-                  dplyr::filter(inconsistency == i & samplesize == j),
-                modelformula = as.formula(study ~ x + V1 + V2),
-                method = "ctree",
-                estimand = "ATT",
-                stop_rule = "es.mean",
-                cores = detectCores() - 2,
-                boot_iter = 100
-                
-              )
-              
-            )
-          }
-          
-        )
-    ) 
-)
-
-names(rawcart_attipdad) <- names(inconsistency)
-for (i in names(inconsistency))
-  names(rawcart_attipdad[[i]]) <- names(ssizes) 
-
-saveRDS(rawcart_attipdad, "./results/cartres1.rds")
-
-gc()
-
-cart_attipdad <- lapply(
-  names(inconsistency),
-  function(i) lapply(
-    names(ssizes), 
-    function(j)
-      lapply(
-        c(
-          "CART-IPW"
-        ),
-        function(x)
-          rawcart_attipdad[[i]][[j]][[x]]$est   
-      ) |>
-      dplyr::bind_rows()|>
-      tibble::as_tibble() |> 
-      tibble::add_column(
-        inconsistency = i,
-        samplesize = j
-      )
-  )
-) |> 
-  dplyr::bind_rows() |> 
-  dplyr::mutate(
-    samplesize = factor(samplesize, 
-                        levels = c("small", "medium", "large")),
-    inconsistency = factor(inconsistency,
-                           levels = c("none", "mild", "high")),
-    evidence = "CART-IPW"
-  ) 
-
-
-
 #####################
 
 allres1b <- res1 |> 
   dplyr::bind_rows(
     res1bbal,
     res1_attipdad,
-    cart_attipdad  )
+    cart_att  )
 
 
 
