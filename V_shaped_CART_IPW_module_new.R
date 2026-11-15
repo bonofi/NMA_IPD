@@ -37,7 +37,6 @@ rawcart_att <- lapply(
                 datalevel = dl,
                 estimand = "ATT",
                 stop_rule = "es.mean",
-                cores = detectCores() - 2,
                 boot_iter = 10
                 
               )

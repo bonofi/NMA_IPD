@@ -16,7 +16,7 @@ cart_ipw_balance <- function(
     n_trees = 5000,
     boot_iter = 100,
     seed = 7385,
-    cores = 5,
+    cores = 5,  # DEPRECATED cores
     save_raw = FALSE
     
 ){
