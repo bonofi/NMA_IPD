@@ -73,7 +73,7 @@ rawgc_att <- lapply(
               )
               gc()
               
-              list2(
+              rlang::list2(
                 
                 "GC-IPW-{m}" := gcipdr_ipw_balance(
                   ipd_network = res1dat |> 
