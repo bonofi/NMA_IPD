@@ -154,6 +154,7 @@ allres1b <- res1 |>
   dplyr::bind_rows(
     res1bbal,
     gc_att,
+    cart_att
   )
 
 

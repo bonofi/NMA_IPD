@@ -31,7 +31,6 @@ system.time(
               )
               
               gc()
-              # B <- 300
               # stratify by moderator
               out <- lapply(
                 sort(unique(df2$V)), 
@@ -198,8 +197,29 @@ gc_att_strata <- lapply(
 
 
 
+#### some checks
+
+rawgc_att_strata$m_11$`ipd-agd`$none$large$`GC-IPW-m_11`$rawest |> 
+  ggplot(
+    aes(
+      x = estimate
+    )
+  ) + geom_histogram() + 
+  facet_grid(
+    rows = vars(contrast)
+  )
 
 
+
+rawgc_att_strata$m_13$`ipd-agd`$none$large$`GC-IPW-m_13`$rawest |> 
+  ggplot(
+    aes(
+      x = estimate
+    )
+  ) + geom_histogram() + 
+  facet_grid(
+    rows = vars(contrast)
+  )
 
 
 
