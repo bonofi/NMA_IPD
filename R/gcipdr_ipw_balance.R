@@ -14,7 +14,7 @@ gcipdr_ipw_balance <- function(
     ref_study = "1",   # for ATT estimation
     stop_rule = "ks.mean",   # can be a vector
     n_trees = 5000,
-    method = c("3","4","13"),    # 3 = continuous Gamma, 4 = continuous Johnson, 13 = user-defined marginals 
+    method = c("3","4", "9", "10", "11","13", "15"),    # 3 = continuous Gamma, 4 = continuous Johnson, 13 = user-defined marginals 
     boot_iter = 100,
     NI_maxEval = 10000, # or a named list "1" = 10000, "2" = 30000, ...
     SI_k = 10000, # or a named list "1" = 10000, "2" = 30000, ...
@@ -267,7 +267,7 @@ gcipdr_ipw_balance <- function(
 
 do_gcipdr <- function(
     ipd_network,
-    method = c("3","4","11","13", "15"), # 3 = continuous Gamma, 4 = continuous Johnson, 13 = user-defined marginals
+    method = c("3","4", "9", "10", "11","13", "15"), # 3 = continuous Gamma, 4 = continuous Johnson, 13 = user-defined marginals
     boot_iter = 100,
     NI_maxEval = 200, # or a named list "1" = 100, "2" = 300 ...
     SI_k = 10000,  # or a named list "1" = 10000, "2" = 30000, ...
@@ -378,7 +378,7 @@ do_gcipdr <- function(
   
     
   # generate pseudodata. Output: list with boot repetition by study. Need to reorganize as list of pooled-by-study data repetitions  
-  
+ 
   set.seed(seed, "L'Ecuyer") 
   
   tictoc::tic()
@@ -406,6 +406,7 @@ do_gcipdr <- function(
         #   globals = c("mclapply", "skewness", 
         #               "adaptIntegrate", "rmvnorm",
         #               "FitJohnsonDistribution"))
+        future.packages = c("gcipdr"),
         future.seed = TRUE
             )
   names(raw) <- names(input)
@@ -451,6 +452,7 @@ do_gcipdr <- function(
         #   globals = c("mclapply", "skewness", 
         #               "adaptIntegrate", "rmvnorm",
         #               "FitJohnsonDistribution"))
+        future.packages = c("gcipdr"),
         future.seed = TRUE
       )
     
