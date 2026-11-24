@@ -14,6 +14,11 @@ download.file(url = url, destfile = pkgFile)
 install.packages(pkgs=pkgFile, type="source", repos=NULL)
 unlink(pkgFile)
 
+library(remotes)
+
+#pak::pak("bonorico/gcipdr")
+pak::pak("bonofi/gcipdr_test@optim_parallel_to_master")
+
 
 library(gridExtra)
 
@@ -26,16 +31,12 @@ library(twang)
 #library(optweight)
 
 #library(devtools)
-library(remotes)
-
-#pak::pak("bonorico/gcipdr")
-pak::pak("bonofi/gcipdr_test@optim_parallel_to_master")
 
 library(gcipdr)
 
-library(furrr)
+#library(furrr)
 library(carrier)
 library(tictoc)
 library(synthpop)
 library(arsenal)
-library(mirai)
+#library(mirai)
