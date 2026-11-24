@@ -7,7 +7,7 @@
 ######################################## STRATEGY: run GC on optimal settings first, then run IPW on GC data 
 
 
-future::plan(multisession, workers = detectCores() - 3)
+future::plan(future::multisession, workers = detectCores() - 3)
 
 system.time(
   # run method 11 (user-defined marginals + normal corr) AND 13 (user-def marg + # moment corr)

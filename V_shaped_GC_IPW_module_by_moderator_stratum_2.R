@@ -2,14 +2,14 @@
 # this module is aimed at showing that synthesizing data by subgroup can better capture the non-linear 
 # relationship between the moderator and the outcome
 
-
+library(future)
 
 ## GC stratified by the mediator variable: proof of concept
 
 ########################################################
 ########################################################
 
-future::plan(multisession, workers = detectCores() - 2)
+future::plan(future::multisession, workers = detectCores() - 2)
 
 B <- 300
 system.time(

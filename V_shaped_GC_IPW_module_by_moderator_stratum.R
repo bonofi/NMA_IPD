@@ -9,7 +9,7 @@
 ########################################################
 ########################################################
 
-future::plan(multisession, workers = detectCores() - 3)
+future::plan(future::multisession, workers = detectCores() - 3)
 
 B <- 300
 system.time(

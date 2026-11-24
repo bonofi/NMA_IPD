@@ -7,7 +7,7 @@
 
 ## run IPW IPD-AGD
 
-future::plan(multisession, workers = detectCores() - 2)
+future::plan(future::multisession, workers = detectCores() - 2)
 
 
 rawcart_att <- lapply(
